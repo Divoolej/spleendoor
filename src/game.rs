@@ -1,3 +1,4 @@
+use crate::aristocrats::Aristocrats;
 use crate::game_config::{GameConfig, NumberOfPlayers};
 use crate::token_pool::TokenPool;
 use crate::cards::Cards;
@@ -5,6 +6,7 @@ use crate::cards::Cards;
 pub struct Game {
 	number_of_players: NumberOfPlayers,
 	token_pool: TokenPool,
+	aristocrats: Aristocrats,
 	cards: Cards,
 }
 
@@ -13,6 +15,7 @@ impl Game {
 		Self {
 			number_of_players: config.number_of_players,
 			token_pool: TokenPool::full(config.number_of_players),
+			aristocrats: Aristocrats::deal(config.number_of_players),
 			cards: Cards::deal(),
 		}
 	}

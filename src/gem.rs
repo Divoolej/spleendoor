@@ -1,7 +1,7 @@
 #[derive(Clone, Copy)]
 pub enum Gem {
 	Diamond,
-	Saphire,
+	Sapphire,
 	Emerald,
 	Ruby,
 	Onyx,

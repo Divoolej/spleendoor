@@ -8,13 +8,8 @@ pub struct TokenPool {
 
 impl TokenPool {
 	pub fn full(number_of_players: NumberOfPlayers) -> Self {
-		use NumberOfPlayers::*;
-
-		let gem_count = match number_of_players { Two => 4, Three => 5, Four => 7 };
-		let gem_pool = GemPool::from((gem_count, gem_count, gem_count, gem_count, gem_count));
-
 		Self {
-			gem_pool,
+			gem_pool: GemPool::new(number_of_players.number_of_gems()),
 			gold_pool: 5,
 		}
 	}
