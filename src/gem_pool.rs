@@ -1,5 +1,6 @@
 pub type GemPoolTuple = (u8, u8, u8, u8, u8);
 
+#[derive(Debug, Clone)]
 pub struct GemPool {
 	diamonds: u8,
 	sapphires: u8,

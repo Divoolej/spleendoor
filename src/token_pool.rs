@@ -1,6 +1,7 @@
 use crate::gem_pool::GemPool;
 use crate::game_config::NumberOfPlayers;
 
+#[derive(Debug, Clone)]
 pub struct TokenPool {
 	gem_pool: GemPool,
 	gold_pool: u8,
@@ -14,11 +15,14 @@ impl TokenPool {
 		}
 	}
 
-	pub fn gold(&self) -> u8 {
-		self.gold_pool
+	pub fn empty() -> Self {
+		Self {
+			gem_pool: GemPool::new(0),
+			gold_pool: 0,
+		}
 	}
 
-	pub fn gems(&self) -> &GemPool {
-		&self.gem_pool
-	}
+	pub fn gold(&self) -> u8 { self.gold_pool }
+
+	pub fn gems(&self) -> &GemPool { &self.gem_pool }
 }

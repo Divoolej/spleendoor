@@ -17,10 +17,8 @@ impl NumberOfPlayers {
 			Self::Four => 5,
 		}
 	}
-}
 
-impl Into<u8> for NumberOfPlayers {
-	fn into(self) -> u8 {
+	pub fn count(&self) -> usize {
 		match self {
 			Self::Two => 2,
 			Self::Three => 3,

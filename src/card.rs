@@ -1,11 +1,12 @@
 use crate::gem::Gem;
 use crate::gem_pool::GemPool;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Tier { One, Two, Three }
 
 pub type Points = u8;
 
+#[derive(Debug, Clone)]
 pub struct Card {
 	tier: Tier,
 	gem: Gem,
