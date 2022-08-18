@@ -46,3 +46,25 @@ impl Game {
 	pub fn starting_player(&self) -> PlayerIndex { self.starting_player }
 	pub fn number_of_players(&self) -> usize { self.number_of_players.count() }
 }
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_from_game_config() {
+		let game_config = GameConfig { number_of_players: NumberOfPlayers::Three };
+		let game = Game::from_game_config(&game_config);
+
+		assert_eq!(game.turn, 1);
+		assert!(!game.cards.tier_1().is_empty());
+		assert!(!game.cards.tier_2().is_empty());
+		assert!(!game.cards.tier_3().is_empty());
+		assert!(game.starting_player < game.players.len());
+		assert_eq!(game.current_player, game.starting_player);
+		assert_eq!(game.number_of_players, NumberOfPlayers::Three);
+		assert_eq!(game.players.len(), NumberOfPlayers::Three.count());
+		assert_ne!(game.token_pool.total(), 0);
+		assert_ne!(game.aristocrats.len(), 0);
+	}
+}

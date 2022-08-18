@@ -18,4 +18,8 @@ impl Player {
 			reserved_cards: Vec::new(),
 		}
 	}
+
+	pub fn token_count(&self) -> u8 { self.tokens.total() }
+	pub fn cards(&self) -> &Vec<Card> { &self.cards }
+	pub fn reserved_cards(&self) -> &Vec<Card> { &self.reserved_cards }
 }

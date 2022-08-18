@@ -30,8 +30,27 @@ impl Aristocrats {
 
 		Self(aristocrats)
 	}
+}
 
-	pub fn len(&self) -> u8 {
-		self.0.len() as u8
+impl std::ops::Deref for Aristocrats {
+	type Target = Vec<Aristocrat>;
+
+	fn deref(&self) -> &Self::Target { &self.0 }
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_deal() {
+		let aristocrats = Aristocrats::deal(NumberOfPlayers::Two);
+		assert_eq!(aristocrats.len(), NumberOfPlayers::Two.number_of_aristocrats() as usize);
+
+		let aristocrats = Aristocrats::deal(NumberOfPlayers::Three);
+		assert_eq!(aristocrats.len(), NumberOfPlayers::Three.number_of_aristocrats() as usize);
+
+		let aristocrats = Aristocrats::deal(NumberOfPlayers::Four);
+		assert_eq!(aristocrats.len(), NumberOfPlayers::Four.number_of_aristocrats() as usize);
 	}
 }

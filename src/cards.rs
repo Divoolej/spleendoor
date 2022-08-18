@@ -130,15 +130,23 @@ impl Cards {
 		}
 	}
 
-	pub fn tier_1(&self) -> &Vec<Card> {
-		&self.tier_1
-	}
+	pub fn tier_1(&self) -> &Vec<Card> { &self.tier_1 }
+	pub fn tier_2(&self) -> &Vec<Card> { &self.tier_2 }
+	pub fn tier_3(&self) -> &Vec<Card> { &self.tier_3 }
+}
 
-	pub fn tier_2(&self) -> &Vec<Card> {
-		&self.tier_2
-	}
+#[cfg(test)]
+mod tests {
+	use super::*;
 
-	pub fn tier_3(&self) -> &Vec<Card> {
-		&self.tier_3
+	#[test]
+	fn test_deal() {
+		let cards = Cards::deal();
+		assert_eq!(cards.tier_1.len(), 40);
+		assert!(cards.tier_1.iter().all(|card| card.tier() == Tier::One));
+		assert_eq!(cards.tier_2.len(), 30);
+		assert!(cards.tier_2.iter().all(|card| card.tier() == Tier::Two));
+		assert_eq!(cards.tier_3.len(), 20);
+		assert!(cards.tier_3.iter().all(|card| card.tier() == Tier::Three));
 	}
 }
