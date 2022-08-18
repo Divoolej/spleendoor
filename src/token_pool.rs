@@ -13,4 +13,12 @@ impl TokenPool {
 			gold_pool: 5,
 		}
 	}
+
+	pub fn gold(&self) -> u8 {
+		self.gold_pool
+	}
+
+	pub fn gems(&self) -> &GemPool {
+		&self.gem_pool
+	}
 }

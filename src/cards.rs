@@ -129,4 +129,16 @@ impl Cards {
 			tier_3: Self::deal_tier(Tier::Three, TIER_3_CARDS),
 		}
 	}
+
+	pub fn tier_1(&self) -> &Vec<Card> {
+		&self.tier_1
+	}
+
+	pub fn tier_2(&self) -> &Vec<Card> {
+		&self.tier_2
+	}
+
+	pub fn tier_3(&self) -> &Vec<Card> {
+		&self.tier_3
+	}
 }

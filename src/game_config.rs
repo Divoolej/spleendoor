@@ -1,4 +1,4 @@
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NumberOfPlayers { Two, Three, Four }
 
 impl NumberOfPlayers {
@@ -15,6 +15,16 @@ impl NumberOfPlayers {
 			Self::Two => 3,
 			Self::Three => 4,
 			Self::Four => 5,
+		}
+	}
+}
+
+impl Into<u8> for NumberOfPlayers {
+	fn into(self) -> u8 {
+		match self {
+			Self::Two => 2,
+			Self::Three => 3,
+			Self::Four => 4,
 		}
 	}
 }

@@ -7,13 +7,3 @@ pub mod token_pool;
 pub mod game_config;
 pub mod aristocrat;
 pub mod aristocrats;
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-
-	#[test]
-	fn it_works() {
-
-	}
-}

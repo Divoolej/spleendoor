@@ -30,4 +30,8 @@ impl Aristocrats {
 
 		Self(aristocrats)
 	}
+
+	pub fn len(&self) -> u8 {
+		self.0.len() as u8
+	}
 }
