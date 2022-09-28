@@ -2,7 +2,11 @@ use crate::gem::Gem;
 use crate::gem_pool::GemPool;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tier { One, Two, Three }
+pub enum Tier {
+	One,
+	Two,
+	Three,
+}
 
 pub type Points = u8;
 
@@ -16,13 +20,26 @@ pub struct Card {
 
 impl Card {
 	pub fn new(tier: Tier, gem: Gem, points: Points, cost: GemPool) -> Self {
-		Self { tier, gem, points, cost }
+		Self {
+			tier,
+			gem,
+			points,
+			cost,
+		}
 	}
 
-	pub fn gem(&self) -> Gem { self.gem }
-	pub fn tier(&self) -> Tier { self.tier }
-	pub fn cost(&self) -> &GemPool { &self.cost }
-	pub fn points(&self) -> Points { self.points }
+	pub fn gem(&self) -> Gem {
+		self.gem
+	}
+	pub fn tier(&self) -> Tier {
+		self.tier
+	}
+	pub fn cost(&self) -> &GemPool {
+		&self.cost
+	}
+	pub fn points(&self) -> Points {
+		self.points
+	}
 }
 
 #[cfg(test)]

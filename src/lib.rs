@@ -1,15 +1,15 @@
-mod utils;
-pub mod gem;
-pub mod card;
-pub mod game;
-pub mod cards;
-pub mod player;
 pub mod action;
-pub mod gem_pool;
-pub mod token_pool;
 pub mod aristocrat;
-pub mod game_config;
 pub mod aristocrats;
+pub mod card;
+pub mod cards;
+pub mod game;
+pub mod game_config;
+pub mod gem;
+pub mod gem_pool;
+pub mod player;
+pub mod token_pool;
+mod utils;
 
 pub mod prelude {
 	pub use crate::game::Game;

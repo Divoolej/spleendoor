@@ -12,7 +12,9 @@ impl From<GemPoolTuple> for Aristocrat {
 impl std::ops::Deref for Aristocrat {
 	type Target = GemPool;
 
-	fn deref(&self) -> &Self::Target { &self.0 }
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
 }
 
 #[cfg(test)]

@@ -1,8 +1,8 @@
 use rand::Rng;
 
+use crate::card::{Card, Points, Tier};
 use crate::gem::Gem;
 use crate::gem_pool::GemPoolTuple;
-use crate::card::{Tier, Card, Points};
 
 type CardData = (Gem, Points, GemPoolTuple);
 
@@ -31,22 +31,22 @@ static TIER_1_CARDS: &[CardData] = &[
 	(Gem::Emerald, 0, (1, 1, 0, 1, 2)),
 	(Gem::Emerald, 0, (1, 0, 0, 2, 2)),
 	(Gem::Emerald, 1, (0, 0, 0, 0, 4)),
-	(Gem::Ruby,    0, (0, 2, 1, 0, 0)),
-	(Gem::Ruby,    0, (3, 0, 0, 0, 0)),
-	(Gem::Ruby,    0, (2, 0, 0, 2, 0)),
-	(Gem::Ruby,    0, (1, 1, 1, 0, 1)),
-	(Gem::Ruby,    0, (1, 0, 0, 1, 3)),
-	(Gem::Ruby,    0, (2, 1, 1, 0, 1)),
-	(Gem::Ruby,    0, (2, 0, 1, 0, 2)),
-	(Gem::Ruby,    1, (4, 0, 0, 0, 0)),
-	(Gem::Onyx,    0, (0, 0, 2, 1, 0)),
-	(Gem::Onyx,    0, (0, 0, 3, 0, 0)),
-	(Gem::Onyx,    0, (2, 0, 2, 0, 0)),
-	(Gem::Onyx,    0, (1, 1, 1, 1, 0)),
-	(Gem::Onyx,    0, (0, 0, 1, 3, 1)),
-	(Gem::Onyx,    0, (1, 2, 1, 1, 0)),
-	(Gem::Onyx,    0, (2, 2, 0, 1, 0)),
-	(Gem::Onyx,    1, (0, 4, 0, 0, 0)),
+	(Gem::Ruby, 0, (0, 2, 1, 0, 0)),
+	(Gem::Ruby, 0, (3, 0, 0, 0, 0)),
+	(Gem::Ruby, 0, (2, 0, 0, 2, 0)),
+	(Gem::Ruby, 0, (1, 1, 1, 0, 1)),
+	(Gem::Ruby, 0, (1, 0, 0, 1, 3)),
+	(Gem::Ruby, 0, (2, 1, 1, 0, 1)),
+	(Gem::Ruby, 0, (2, 0, 1, 0, 2)),
+	(Gem::Ruby, 1, (4, 0, 0, 0, 0)),
+	(Gem::Onyx, 0, (0, 0, 2, 1, 0)),
+	(Gem::Onyx, 0, (0, 0, 3, 0, 0)),
+	(Gem::Onyx, 0, (2, 0, 2, 0, 0)),
+	(Gem::Onyx, 0, (1, 1, 1, 1, 0)),
+	(Gem::Onyx, 0, (0, 0, 1, 3, 1)),
+	(Gem::Onyx, 0, (1, 2, 1, 1, 0)),
+	(Gem::Onyx, 0, (2, 2, 0, 1, 0)),
+	(Gem::Onyx, 1, (0, 4, 0, 0, 0)),
 ];
 
 static TIER_2_CARDS: &[CardData] = &[
@@ -68,18 +68,18 @@ static TIER_2_CARDS: &[CardData] = &[
 	(Gem::Emerald, 2, (4, 2, 0, 0, 1)),
 	(Gem::Emerald, 2, (0, 5, 3, 0, 0)),
 	(Gem::Emerald, 3, (0, 0, 6, 0, 0)),
-	(Gem::Ruby,    1, (2, 0, 0, 2, 3)),
-	(Gem::Ruby,    1, (0, 3, 0, 2, 3)),
-	(Gem::Ruby,    2, (0, 0, 0, 0, 5)),
-	(Gem::Ruby,    2, (1, 4, 2, 0, 0)),
-	(Gem::Ruby,    2, (3, 0, 0, 0, 5)),
-	(Gem::Ruby,    3, (0, 0, 0, 6, 0)),
-	(Gem::Onyx,    1, (3, 2, 2, 0, 0)),
-	(Gem::Onyx,    1, (3, 0, 3, 0, 2)),
-	(Gem::Onyx,    2, (5, 0, 0, 0, 0)),
-	(Gem::Onyx,    2, (0, 1, 4, 2, 0)),
-	(Gem::Onyx,    2, (0, 0, 5, 3, 0)),
-	(Gem::Onyx,    3, (0, 0, 0, 0, 6)),
+	(Gem::Ruby, 1, (2, 0, 0, 2, 3)),
+	(Gem::Ruby, 1, (0, 3, 0, 2, 3)),
+	(Gem::Ruby, 2, (0, 0, 0, 0, 5)),
+	(Gem::Ruby, 2, (1, 4, 2, 0, 0)),
+	(Gem::Ruby, 2, (3, 0, 0, 0, 5)),
+	(Gem::Ruby, 3, (0, 0, 0, 6, 0)),
+	(Gem::Onyx, 1, (3, 2, 2, 0, 0)),
+	(Gem::Onyx, 1, (3, 0, 3, 0, 2)),
+	(Gem::Onyx, 2, (5, 0, 0, 0, 0)),
+	(Gem::Onyx, 2, (0, 1, 4, 2, 0)),
+	(Gem::Onyx, 2, (0, 0, 5, 3, 0)),
+	(Gem::Onyx, 3, (0, 0, 0, 0, 6)),
 ];
 
 static TIER_3_CARDS: &[CardData] = &[
@@ -95,14 +95,14 @@ static TIER_3_CARDS: &[CardData] = &[
 	(Gem::Emerald, 4, (0, 7, 0, 0, 0)),
 	(Gem::Emerald, 4, (3, 6, 3, 0, 0)),
 	(Gem::Emerald, 5, (0, 7, 3, 0, 0)),
-	(Gem::Ruby,    3, (3, 5, 3, 0, 3)),
-	(Gem::Ruby,    4, (0, 0, 7, 0, 0)),
-	(Gem::Ruby,    4, (0, 3, 6, 3, 0)),
-	(Gem::Ruby,    5, (0, 0, 7, 3, 0)),
-	(Gem::Onyx,    3, (3, 3, 5, 3, 0)),
-	(Gem::Onyx,    4, (0, 0, 0, 7, 0)),
-	(Gem::Onyx,    4, (0, 0, 3, 6, 3)),
-	(Gem::Onyx,    5, (0, 0, 0, 7, 3)),
+	(Gem::Ruby, 3, (3, 5, 3, 0, 3)),
+	(Gem::Ruby, 4, (0, 0, 7, 0, 0)),
+	(Gem::Ruby, 4, (0, 3, 6, 3, 0)),
+	(Gem::Ruby, 5, (0, 0, 7, 3, 0)),
+	(Gem::Onyx, 3, (3, 3, 5, 3, 0)),
+	(Gem::Onyx, 4, (0, 0, 0, 7, 0)),
+	(Gem::Onyx, 4, (0, 0, 3, 6, 3)),
+	(Gem::Onyx, 5, (0, 0, 0, 7, 3)),
 ];
 
 #[derive(Debug)]
@@ -116,9 +116,10 @@ impl Cards {
 	fn deal_tier(rng: &mut impl Rng, tier: Tier, cards: &[CardData]) -> Vec<Card> {
 		use rand::prelude::SliceRandom;
 
-		let mut deck: Vec<Card> = cards.iter().map(|&(gem, points, cost)| {
-			Card::new(tier, gem, points, cost.into())
-		}).collect();
+		let mut deck: Vec<Card> = cards
+			.iter()
+			.map(|&(gem, points, cost)| Card::new(tier, gem, points, cost.into()))
+			.collect();
 
 		deck.shuffle(rng);
 
@@ -157,9 +158,15 @@ impl Cards {
 		}
 	}
 
-	pub fn tier_1(&self) -> &Vec<Card> { &self.tier_1 }
-	pub fn tier_2(&self) -> &Vec<Card> { &self.tier_2 }
-	pub fn tier_3(&self) -> &Vec<Card> { &self.tier_3 }
+	pub fn tier_1(&self) -> &Vec<Card> {
+		&self.tier_1
+	}
+	pub fn tier_2(&self) -> &Vec<Card> {
+		&self.tier_2
+	}
+	pub fn tier_3(&self) -> &Vec<Card> {
+		&self.tier_3
+	}
 }
 
 #[cfg(test)]

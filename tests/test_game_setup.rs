@@ -1,6 +1,6 @@
 use spleendoor::{
-	game_config::{GameConfig, NumberOfPlayers},
 	game::Game,
+	game_config::{GameConfig, NumberOfPlayers},
 };
 
 fn test_common_setup(game: &Game) {
@@ -20,7 +20,10 @@ fn test_common_setup(game: &Game) {
 
 #[test]
 fn test_game_setup_for_two_players() {
-	let game_config = GameConfig { number_of_players: NumberOfPlayers::Two, seed: None };
+	let game_config = GameConfig {
+		number_of_players: NumberOfPlayers::Two,
+		seed: None,
+	};
 	let game = Game::from_config(game_config);
 	assert!(game.starting_player_index() < 2);
 	assert_eq!(game.players().len(), 2);
@@ -36,7 +39,10 @@ fn test_game_setup_for_two_players() {
 
 #[test]
 fn test_game_setup_for_three_players() {
-	let game_config = GameConfig { number_of_players: NumberOfPlayers::Three, seed: None };
+	let game_config = GameConfig {
+		number_of_players: NumberOfPlayers::Three,
+		seed: None,
+	};
 	let game = Game::from_config(game_config);
 	assert!(game.starting_player_index() < 3);
 	assert_eq!(game.players().len(), 3);
@@ -52,7 +58,10 @@ fn test_game_setup_for_three_players() {
 
 #[test]
 fn test_game_setup_for_four_players() {
-	let game_config = GameConfig { number_of_players: NumberOfPlayers::Four, seed: None };
+	let game_config = GameConfig {
+		number_of_players: NumberOfPlayers::Four,
+		seed: None,
+	};
 	let game = Game::from_config(game_config);
 	assert!(game.starting_player_index() < 4);
 	assert_eq!(game.players().len(), 4);

@@ -1,5 +1,5 @@
-use crate::gem_pool::GemPool;
 use crate::game_config::NumberOfPlayers;
+use crate::gem_pool::GemPool;
 
 pub type TokenPoolTuple = (u8, u8, u8, u8, u8, u8);
 
@@ -28,9 +28,15 @@ impl TokenPool {
 		self.gem_pool.total() + self.gold_pool
 	}
 
-	pub fn gold(&self) -> u8 { self.gold_pool }
-	pub fn gems(&self) -> &GemPool { &self.gem_pool }
-	pub fn gems_mut(&mut self) -> &mut GemPool { &mut self.gem_pool }
+	pub fn gold(&self) -> u8 {
+		self.gold_pool
+	}
+	pub fn gems(&self) -> &GemPool {
+		&self.gem_pool
+	}
+	pub fn gems_mut(&mut self) -> &mut GemPool {
+		&mut self.gem_pool
+	}
 }
 
 impl From<TokenPoolTuple> for TokenPool {

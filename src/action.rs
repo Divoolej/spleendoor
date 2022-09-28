@@ -1,5 +1,5 @@
-use crate::gem::Gem;
 use crate::card::Tier;
+use crate::gem::Gem;
 
 pub enum Action {
 	TakeTwoGems(Gem),

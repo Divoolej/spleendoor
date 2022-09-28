@@ -19,7 +19,8 @@ impl GemPool {
 			first.emeralds + second.emeralds,
 			first.rubies + second.rubies,
 			first.onyxes + second.onyxes,
-		).into()
+		)
+			.into()
 	}
 
 	pub fn difference(first: &GemPool, second: &GemPool) -> GemPool {
@@ -29,11 +30,19 @@ impl GemPool {
 			first.emeralds.saturating_sub(second.emeralds),
 			first.rubies.saturating_sub(second.rubies),
 			first.onyxes.saturating_sub(second.onyxes),
-		).into()
+		)
+			.into()
 	}
 
 	pub fn new(initial_amount: u8) -> Self {
-		(initial_amount, initial_amount, initial_amount, initial_amount, initial_amount).into()
+		(
+			initial_amount,
+			initial_amount,
+			initial_amount,
+			initial_amount,
+			initial_amount,
+		)
+			.into()
 	}
 
 	pub fn total(&self) -> u8 {
@@ -42,39 +51,49 @@ impl GemPool {
 
 	pub fn count(&self, gem: Gem) -> u8 {
 		match gem {
-	    Gem::Diamond => self.diamonds,
-	    Gem::Sapphire => self.sapphires,
-	    Gem::Emerald => self.emeralds,
-	    Gem::Ruby => self.rubies,
-	    Gem::Onyx => self.onyxes,
+			Gem::Diamond => self.diamonds,
+			Gem::Sapphire => self.sapphires,
+			Gem::Emerald => self.emeralds,
+			Gem::Ruby => self.rubies,
+			Gem::Onyx => self.onyxes,
 		}
 	}
 
 	pub fn add(&mut self, gem: Gem, count: u8) {
 		match gem {
-	    Gem::Diamond => self.diamonds += count,
-	    Gem::Sapphire => self.sapphires += count,
-	    Gem::Emerald => self.emeralds += count,
-	    Gem::Ruby => self.rubies += count,
-	    Gem::Onyx => self.onyxes += count,
+			Gem::Diamond => self.diamonds += count,
+			Gem::Sapphire => self.sapphires += count,
+			Gem::Emerald => self.emeralds += count,
+			Gem::Ruby => self.rubies += count,
+			Gem::Onyx => self.onyxes += count,
 		}
 	}
 
 	pub fn remove(&mut self, gem: Gem, count: u8) {
 		match gem {
-	    Gem::Diamond => self.diamonds -= count,
-	    Gem::Sapphire => self.sapphires -= count,
-	    Gem::Emerald => self.emeralds -= count,
-	    Gem::Ruby => self.rubies -= count,
-	    Gem::Onyx => self.onyxes -= count,
+			Gem::Diamond => self.diamonds -= count,
+			Gem::Sapphire => self.sapphires -= count,
+			Gem::Emerald => self.emeralds -= count,
+			Gem::Ruby => self.rubies -= count,
+			Gem::Onyx => self.onyxes -= count,
 		}
 	}
 
-	pub fn diamonds(&self) -> u8 { self.diamonds }
-	pub fn sapphires(&self) -> u8 { self.sapphires }
-	pub fn emeralds(&self) -> u8 { self.emeralds }
-	pub fn rubies(&self) -> u8 { self.rubies }
-	pub fn onyxes(&self) -> u8 { self.onyxes }
+	pub fn diamonds(&self) -> u8 {
+		self.diamonds
+	}
+	pub fn sapphires(&self) -> u8 {
+		self.sapphires
+	}
+	pub fn emeralds(&self) -> u8 {
+		self.emeralds
+	}
+	pub fn rubies(&self) -> u8 {
+		self.rubies
+	}
+	pub fn onyxes(&self) -> u8 {
+		self.onyxes
+	}
 }
 
 impl From<GemPoolTuple> for GemPool {

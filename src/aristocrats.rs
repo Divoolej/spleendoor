@@ -1,8 +1,8 @@
 use rand::Rng;
 
 use crate::aristocrat::Aristocrat;
-use crate::gem_pool::GemPoolTuple;
 use crate::game_config::NumberOfPlayers;
+use crate::gem_pool::GemPoolTuple;
 
 type AristocratData = GemPoolTuple;
 
@@ -27,9 +27,9 @@ impl Aristocrats {
 		use rand::prelude::SliceRandom;
 
 		let aristocrats = ARISTOCRATS
-				.choose_multiple(rng, number_of_players.number_of_aristocrats() as usize)
-				.map(|&aristocrat_data| Aristocrat::from(aristocrat_data))
-				.collect();
+			.choose_multiple(rng, number_of_players.number_of_aristocrats() as usize)
+			.map(|&aristocrat_data| Aristocrat::from(aristocrat_data))
+			.collect();
 
 		Self(aristocrats)
 	}
@@ -38,7 +38,9 @@ impl Aristocrats {
 impl std::ops::Deref for Aristocrats {
 	type Target = Vec<Aristocrat>;
 
-	fn deref(&self) -> &Self::Target { &self.0 }
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
 }
 
 #[cfg(test)]
@@ -53,9 +55,15 @@ mod tests {
 		assert_eq!(aristocrats.len(), NumberOfPlayers::Two.number_of_aristocrats() as usize);
 
 		let aristocrats = Aristocrats::deal(&mut rng, NumberOfPlayers::Three);
-		assert_eq!(aristocrats.len(), NumberOfPlayers::Three.number_of_aristocrats() as usize);
+		assert_eq!(
+			aristocrats.len(),
+			NumberOfPlayers::Three.number_of_aristocrats() as usize
+		);
 
 		let aristocrats = Aristocrats::deal(&mut rng, NumberOfPlayers::Four);
-		assert_eq!(aristocrats.len(), NumberOfPlayers::Four.number_of_aristocrats() as usize);
+		assert_eq!(
+			aristocrats.len(),
+			NumberOfPlayers::Four.number_of_aristocrats() as usize
+		);
 	}
 }

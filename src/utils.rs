@@ -1,21 +1,18 @@
-use rand::{thread_rng, Rng, distributions::Distribution};
+use rand::{distributions::Distribution, thread_rng, Rng};
 
 static SEED_CHARACTERS: [char; 25] = [
-	'A', 'B', 'C', 'D', 'E',
-	'F', 'G', 'H', 'I', 'J',
-	'K', 'L', 'M', 'N', 'O',
-	'P', 'Q', 'R', 'S', 'T',
-	'U', 'W', 'X', 'Y', 'Z'
+	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'W', 'X',
+	'Y', 'Z',
 ];
 
 struct SeedCharacters;
 
 impl Distribution<char> for SeedCharacters {
-  fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> char {
-  	use rand::seq::SliceRandom;
+	fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> char {
+		use rand::seq::SliceRandom;
 
-  	*SEED_CHARACTERS.choose(rng).unwrap()
-  }
+		*SEED_CHARACTERS.choose(rng).unwrap()
+	}
 }
 
 pub fn generate_seed() -> String {

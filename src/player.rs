@@ -1,8 +1,8 @@
-use crate::token_pool::TokenPool;
 use crate::aristocrat::Aristocrat;
 use crate::card::Card;
 use crate::gem::Gem;
 use crate::gem_pool::GemPool;
+use crate::token_pool::TokenPool;
 
 pub type PlayerIndex = usize;
 
@@ -24,10 +24,18 @@ impl Player {
 		}
 	}
 
-	pub fn token_count(&self) -> u8 { self.tokens.total() }
-	pub fn gems(&self) -> &GemPool { self.tokens.gems() }
-	pub fn cards(&self) -> &Vec<Card> { &self.cards }
-	pub fn reserved_cards(&self) -> &Vec<Card> { &self.reserved_cards }
+	pub fn token_count(&self) -> u8 {
+		self.tokens.total()
+	}
+	pub fn gems(&self) -> &GemPool {
+		self.tokens.gems()
+	}
+	pub fn cards(&self) -> &Vec<Card> {
+		&self.cards
+	}
+	pub fn reserved_cards(&self) -> &Vec<Card> {
+		&self.reserved_cards
+	}
 
 	pub fn add_gem(&mut self, gem: Gem, count: u8) {
 		self.tokens.gems_mut().add(gem, count);
@@ -46,9 +54,9 @@ impl Player {
 }
 
 impl Default for Player {
-  fn default() -> Self {
-    Self::new()
-  }
+	fn default() -> Self {
+		Self::new()
+	}
 }
 
 #[cfg(test)]
