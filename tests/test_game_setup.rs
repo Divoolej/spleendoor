@@ -8,7 +8,7 @@ fn test_common_setup(game: &Game) {
 	assert_eq!(game.tier_1_card_pool().len(), 40);
 	assert_eq!(game.tier_2_card_pool().len(), 30);
 	assert_eq!(game.tier_3_card_pool().len(), 20);
-	assert_eq!(game.current_player(), game.starting_player());
+	assert_eq!(game.current_player_index(), game.starting_player_index());
 
 	for i in 0..game.number_of_players() {
 		let player = &game.players()[i];
@@ -20,9 +20,9 @@ fn test_common_setup(game: &Game) {
 
 #[test]
 fn test_game_setup_for_two_players() {
-	let game_config = GameConfig { number_of_players: NumberOfPlayers::Two };
-	let game = Game::from_game_config(&game_config);
-	assert!(game.starting_player() < 2);
+	let game_config = GameConfig { number_of_players: NumberOfPlayers::Two, seed: None };
+	let game = Game::from_config(game_config);
+	assert!(game.starting_player_index() < 2);
 	assert_eq!(game.players().len(), 2);
 	assert_eq!(game.number_of_players(), 2);
 	assert_eq!(game.gem_pool().diamonds(), 4);
@@ -36,9 +36,9 @@ fn test_game_setup_for_two_players() {
 
 #[test]
 fn test_game_setup_for_three_players() {
-	let game_config = GameConfig { number_of_players: NumberOfPlayers::Three };
-	let game = Game::from_game_config(&game_config);
-	assert!(game.starting_player() < 3);
+	let game_config = GameConfig { number_of_players: NumberOfPlayers::Three, seed: None };
+	let game = Game::from_config(game_config);
+	assert!(game.starting_player_index() < 3);
 	assert_eq!(game.players().len(), 3);
 	assert_eq!(game.number_of_players(), 3);
 	assert_eq!(game.gem_pool().diamonds(), 5);
@@ -52,9 +52,9 @@ fn test_game_setup_for_three_players() {
 
 #[test]
 fn test_game_setup_for_four_players() {
-	let game_config = GameConfig { number_of_players: NumberOfPlayers::Four };
-	let game = Game::from_game_config(&game_config);
-	assert!(game.starting_player() < 4);
+	let game_config = GameConfig { number_of_players: NumberOfPlayers::Four, seed: None };
+	let game = Game::from_config(game_config);
+	assert!(game.starting_player_index() < 4);
 	assert_eq!(game.players().len(), 4);
 	assert_eq!(game.number_of_players(), 4);
 	assert_eq!(game.gem_pool().diamonds(), 7);

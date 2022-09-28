@@ -1,7 +1,9 @@
 use crate::gem_pool::GemPool;
 use crate::game_config::NumberOfPlayers;
 
-#[derive(Debug, Clone)]
+pub type TokenPoolTuple = (u8, u8, u8, u8, u8, u8);
+
+#[derive(Debug, Clone, Copy)]
 pub struct TokenPool {
 	gem_pool: GemPool,
 	gold_pool: u8,
@@ -28,6 +30,16 @@ impl TokenPool {
 
 	pub fn gold(&self) -> u8 { self.gold_pool }
 	pub fn gems(&self) -> &GemPool { &self.gem_pool }
+	pub fn gems_mut(&mut self) -> &mut GemPool { &mut self.gem_pool }
+}
+
+impl From<TokenPoolTuple> for TokenPool {
+	fn from((diamonds, sapphires, emeralds, rubies, onyxes, gold): TokenPoolTuple) -> Self {
+		Self {
+			gem_pool: (diamonds, sapphires, emeralds, rubies, onyxes).into(),
+			gold_pool: gold,
+		}
+	}
 }
 
 #[cfg(test)]

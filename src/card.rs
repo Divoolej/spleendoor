@@ -1,7 +1,7 @@
 use crate::gem::Gem;
 use crate::gem_pool::GemPool;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Tier { One, Two, Three }
 
 pub type Points = u8;

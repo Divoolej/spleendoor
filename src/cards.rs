@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::gem::Gem;
 use crate::gem_pool::GemPoolTuple;
 use crate::card::{Tier, Card, Points};
@@ -103,6 +105,7 @@ static TIER_3_CARDS: &[CardData] = &[
 	(Gem::Onyx,    5, (0, 0, 0, 7, 3)),
 ];
 
+#[derive(Debug)]
 pub struct Cards {
 	tier_1: Vec<Card>,
 	tier_2: Vec<Card>,
@@ -110,23 +113,47 @@ pub struct Cards {
 }
 
 impl Cards {
-	fn deal_tier(tier: Tier, cards: &[CardData]) -> Vec<Card> {
+	fn deal_tier(rng: &mut impl Rng, tier: Tier, cards: &[CardData]) -> Vec<Card> {
 		use rand::prelude::SliceRandom;
 
-		let mut deck: Vec<Card> = cards.into_iter().map(|&(gem, points, cost)| {
+		let mut deck: Vec<Card> = cards.iter().map(|&(gem, points, cost)| {
 			Card::new(tier, gem, points, cost.into())
 		}).collect();
 
-		deck.shuffle(&mut rand::thread_rng());
+		deck.shuffle(rng);
 
 		deck
 	}
 
-	pub fn deal() -> Self {
+	pub fn deal(rng: &mut impl Rng) -> Self {
 		Self {
-			tier_1: Self::deal_tier(Tier::One, TIER_1_CARDS),
-			tier_2: Self::deal_tier(Tier::Two, TIER_2_CARDS),
-			tier_3: Self::deal_tier(Tier::Three, TIER_3_CARDS),
+			tier_1: Self::deal_tier(rng, Tier::One, TIER_1_CARDS),
+			tier_2: Self::deal_tier(rng, Tier::Two, TIER_2_CARDS),
+			tier_3: Self::deal_tier(rng, Tier::Three, TIER_3_CARDS),
+		}
+	}
+
+	pub fn tier(&self, tier: Tier) -> &Vec<Card> {
+		match tier {
+			Tier::One => &self.tier_1,
+			Tier::Two => &self.tier_2,
+			Tier::Three => &self.tier_3,
+		}
+	}
+
+	pub fn tier_mut(&mut self, tier: Tier) -> &mut Vec<Card> {
+		match tier {
+			Tier::One => &mut self.tier_1,
+			Tier::Two => &mut self.tier_2,
+			Tier::Three => &mut self.tier_3,
+		}
+	}
+
+	pub fn visible(&self) -> Cards {
+		Cards {
+			tier_1: self.tier_1.iter().take(4).cloned().collect(),
+			tier_2: self.tier_2.iter().take(4).cloned().collect(),
+			tier_3: self.tier_3.iter().take(4).cloned().collect(),
 		}
 	}
 
@@ -141,12 +168,34 @@ mod tests {
 
 	#[test]
 	fn test_deal() {
-		let cards = Cards::deal();
+		let cards = Cards::deal(&mut rand::thread_rng());
 		assert_eq!(cards.tier_1.len(), 40);
 		assert!(cards.tier_1.iter().all(|card| card.tier() == Tier::One));
 		assert_eq!(cards.tier_2.len(), 30);
 		assert!(cards.tier_2.iter().all(|card| card.tier() == Tier::Two));
 		assert_eq!(cards.tier_3.len(), 20);
 		assert!(cards.tier_3.iter().all(|card| card.tier() == Tier::Three));
+	}
+
+	#[test]
+	fn test_visible_when_full() {
+		let cards = Cards::deal(&mut rand::thread_rng());
+		let visible_cards = cards.visible();
+		assert_eq!(visible_cards.tier_1.len(), 4);
+		assert_eq!(visible_cards.tier_2.len(), 4);
+		assert_eq!(visible_cards.tier_3.len(), 4);
+	}
+
+	#[test]
+	fn test_visible_when_empty() {
+		let cards = Cards {
+			tier_1: vec![],
+			tier_2: vec![],
+			tier_3: vec![],
+		};
+		let visible_cards = cards.visible();
+		assert_eq!(visible_cards.tier_1.len(), 0);
+		assert_eq!(visible_cards.tier_2.len(), 0);
+		assert_eq!(visible_cards.tier_3.len(), 0);
 	}
 }

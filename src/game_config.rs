@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NumberOfPlayers { Two, Three, Four }
 
 impl NumberOfPlayers {
@@ -29,6 +29,7 @@ impl NumberOfPlayers {
 
 pub struct GameConfig {
 	pub number_of_players: NumberOfPlayers,
+	pub seed: Option<String>,
 }
 
 #[cfg(test)]

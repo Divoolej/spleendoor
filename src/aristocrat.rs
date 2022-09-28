@@ -1,5 +1,6 @@
 use crate::gem_pool::{GemPool, GemPoolTuple};
 
+#[derive(Debug, Clone, Copy)]
 pub struct Aristocrat(GemPool);
 
 impl From<GemPoolTuple> for Aristocrat {

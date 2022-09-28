@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::aristocrat::Aristocrat;
 use crate::gem_pool::GemPoolTuple;
 use crate::game_config::NumberOfPlayers;
@@ -17,14 +19,15 @@ static ARISTOCRATS: &[AristocratData] = &[
 	(4, 0, 0, 0, 4),
 ];
 
+#[derive(Debug, Clone)]
 pub struct Aristocrats(Vec<Aristocrat>);
 
 impl Aristocrats {
-	pub fn deal(number_of_players: NumberOfPlayers) -> Self {
+	pub fn deal(rng: &mut impl Rng, number_of_players: NumberOfPlayers) -> Self {
 		use rand::prelude::SliceRandom;
 
 		let aristocrats = ARISTOCRATS
-				.choose_multiple(&mut rand::thread_rng(), number_of_players.number_of_aristocrats() as usize)
+				.choose_multiple(rng, number_of_players.number_of_aristocrats() as usize)
 				.map(|&aristocrat_data| Aristocrat::from(aristocrat_data))
 				.collect();
 
@@ -44,13 +47,15 @@ mod tests {
 
 	#[test]
 	fn test_deal() {
-		let aristocrats = Aristocrats::deal(NumberOfPlayers::Two);
+		let mut rng = rand::thread_rng();
+
+		let aristocrats = Aristocrats::deal(&mut rng, NumberOfPlayers::Two);
 		assert_eq!(aristocrats.len(), NumberOfPlayers::Two.number_of_aristocrats() as usize);
 
-		let aristocrats = Aristocrats::deal(NumberOfPlayers::Three);
+		let aristocrats = Aristocrats::deal(&mut rng, NumberOfPlayers::Three);
 		assert_eq!(aristocrats.len(), NumberOfPlayers::Three.number_of_aristocrats() as usize);
 
-		let aristocrats = Aristocrats::deal(NumberOfPlayers::Four);
+		let aristocrats = Aristocrats::deal(&mut rng, NumberOfPlayers::Four);
 		assert_eq!(aristocrats.len(), NumberOfPlayers::Four.number_of_aristocrats() as usize);
 	}
 }
