@@ -1,3 +1,4 @@
+use log::trace;
 use rand::rngs::StdRng;
 
 use crate::action::Action;
@@ -6,6 +7,7 @@ use crate::aristocrats::Aristocrats;
 use crate::card::Card;
 use crate::cards::Cards;
 use crate::game_config::{GameConfig, NumberOfPlayers};
+use crate::gem::Gem;
 use crate::gem_pool::GemPool;
 use crate::player::{Player, PlayerIndex};
 use crate::token_pool::TokenPool;
@@ -19,20 +21,62 @@ pub enum GameState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum InvalidAction {
+pub enum HandleActionError {
+	InvalidGameState,
 	NotEnoughGems,
 	InvalidCardIndex,
 }
 
 #[derive(Debug)]
 pub struct BoardState {
-	turn: u8,
-	cards: Cards,
-	players: Vec<Player>,
-	token_pool: TokenPool,
-	game_state: GameState,
-	aristocrats: Vec<Aristocrat>,
-	current_player_index: PlayerIndex,
+	pub turn: u8,
+	pub cards: Cards,
+	pub players: Vec<Player>,
+	pub token_pool: TokenPool,
+	pub game_state: GameState,
+	pub aristocrats: Vec<Aristocrat>,
+	pub current_player_index: PlayerIndex,
+}
+
+#[cfg(debug_assertions)]
+impl BoardState {
+	pub fn pretty_print(&self) {
+		println!(
+			"T{} P{} <{:?}> D{}|S{}|E{}|R{}|O{}|G{}",
+			self.turn,
+			self.current_player_index,
+			self.game_state,
+			self.token_pool.gems().diamonds(),
+			self.token_pool.gems().sapphires(),
+			self.token_pool.gems().emeralds(),
+			self.token_pool.gems().rubies(),
+			self.token_pool.gems().onyxes(),
+			self.token_pool.gold()
+		);
+		print!("A: ");
+		for a in &self.aristocrats {
+			a.pretty_print();
+			print!(" ");
+		}
+		print!("\n");
+		self.cards.pretty_print();
+		for (i, p) in self.players.iter().enumerate() {
+			print!("\nP{} ", i);
+			p.gems().pretty_print();
+			print!(" ");
+			for c in p.cards() {
+				match c.gem() {
+					Gem::Diamond => print!("D"),
+					Gem::Sapphire => print!("S"),
+					Gem::Emerald => print!("E"),
+					Gem::Ruby => print!("R"),
+					Gem::Onyx => print!("O"),
+				}
+				print!("[{}] ", c.points());
+			}
+		}
+		print!("\n");
+	}
 }
 
 pub struct Game {
@@ -54,19 +98,16 @@ impl Game {
 		use rand::SeedableRng;
 
 		let starting_player_index: PlayerIndex = rand::random::<usize>() % config.number_of_players.count();
-		let seed = config
-			.seed
-			.filter(String::is_empty)
-			.unwrap_or_else(utils::generate_seed); // TODO: Return error when seed is empty?
+		let seed = config.seed.filter(|s| !s.is_empty()).unwrap_or_else(utils::generate_seed); // TODO: Return error when seed is empty?
 		let mut rng = StdRng::from_seed(
-			seed.as_bytes()
-				.iter()
-				.copied()
-				.cycle()
-				.take(32)
-				.collect::<Vec<u8>>()
-				.try_into()
-				.unwrap(), // Safe because we ensure that the string is not empty
+			seed.as_bytes().iter().copied().cycle().take(32).collect::<Vec<u8>>().try_into().unwrap(), // Safe because we ensure that the string is not empty
+		);
+
+		trace!(
+			"Starting a new {}-player game with seed {}. Starting player: {}",
+			config.number_of_players.count(),
+			seed,
+			starting_player_index
 		);
 
 		Self {
@@ -84,8 +125,14 @@ impl Game {
 		}
 	}
 
-	pub fn handle_action(&mut self, action: Action) -> Result<(), InvalidAction> {
+	pub fn handle_action(&mut self, action: Action) -> Result<(), HandleActionError> {
+		if !matches!(self.game_state, GameState::AwaitingAction) {
+			return Err(HandleActionError::InvalidGameState);
+		}
+
 		let player = &mut self.players[self.current_player_index];
+
+		trace!("Player {} |> {:?}", self.current_player_index, action);
 
 		match action {
 			Action::TakeTwoGems(gem) => {
@@ -93,13 +140,11 @@ impl Game {
 					self.token_pool.gems_mut().remove(gem, 2);
 					player.add_gem(gem, 2);
 				} else {
-					return Err(InvalidAction::NotEnoughGems);
+					return Err(HandleActionError::NotEnoughGems);
 				}
 				if player.token_count() > 10 {
 					self.game_state = GameState::AwaitingDiscard;
-				} else {
-					self.turn += 1;
-					self.current_player_index = (self.current_player_index + 1) % self.number_of_players.count();
+					return Ok(());
 				}
 			}
 			Action::TakeThreeGems(first_gem, second_gem, third_gem) => {
@@ -114,31 +159,38 @@ impl Game {
 					player.add_gem(second_gem, 1);
 					player.add_gem(third_gem, 1);
 				} else {
-					return Err(InvalidAction::NotEnoughGems);
+					return Err(HandleActionError::NotEnoughGems);
 				}
 				if player.token_count() > 10 {
 					self.game_state = GameState::AwaitingDiscard;
-				} else {
-					self.turn += 1;
-					self.current_player_index = (self.current_player_index + 1) % self.number_of_players.count();
+					return Ok(());
 				}
 			}
 			Action::BuyCard(tier, index) => {
 				let index = index as usize;
 				if index > 3 || self.cards.tier(tier).len() < index {
-					return Err(InvalidAction::InvalidCardIndex);
+					return Err(HandleActionError::InvalidCardIndex);
 				}
 				let card = &self.cards.tier(tier)[index];
-				// if player.can_buy(card) {
-
-				// }
-				// Check if player can buy this card
+				if player.can_buy(card) {
+					let gold_needed = GemPool::difference(card.cost(), &player.effective_gem_pool());
+					player.remove_gold(gold_needed.total());
+					let gem_cost = GemPool::difference(card.cost(), &player.cards_gem_pool());
+					player.remove_gem(Gem::Diamond, gem_cost.diamonds());
+					player.remove_gem(Gem::Sapphire, gem_cost.sapphires());
+					player.remove_gem(Gem::Emerald, gem_cost.emeralds());
+					player.remove_gem(Gem::Ruby, gem_cost.rubies());
+					player.remove_gem(Gem::Onyx, gem_cost.onyxes());
+					player.cards_mut().push(self.cards.tier_mut(tier).remove(index));
+				}
 			}
 			Action::BuyReservedCard(_) => todo!(),
 			Action::ReserveCard(_, _) => todo!(),
 			Action::Pass => todo!(),
 		};
 
+		self.turn += 1;
+		self.current_player_index = (self.current_player_index + 1) % self.number_of_players.count();
 		Ok(())
 	}
 
@@ -255,7 +307,7 @@ mod tests {
 		assert_eq!(game.current_player().gems().diamonds(), 0);
 
 		let result = game.handle_action(Action::TakeTwoGems(Gem::Diamond));
-		assert_eq!(result, Err(InvalidAction::NotEnoughGems));
+		assert_eq!(result, Err(HandleActionError::NotEnoughGems));
 		let player = &game.players[player_index];
 
 		assert_eq!(game.current_player_index, player_index);
@@ -278,8 +330,7 @@ mod tests {
 		assert_eq!(game.current_player().gems().sapphires(), 0);
 		assert_eq!(game.current_player().gems().rubies(), 0);
 
-		game.handle_action(Action::TakeThreeGems(Gem::Diamond, Gem::Sapphire, Gem::Ruby))
-			.unwrap();
+		game.handle_action(Action::TakeThreeGems(Gem::Diamond, Gem::Sapphire, Gem::Ruby)).unwrap();
 		let player = &game.players[player_index];
 
 		assert_ne!(game.current_player_index, player_index);
@@ -308,7 +359,7 @@ mod tests {
 		assert_eq!(game.current_player().gems().rubies(), 0);
 
 		let result = game.handle_action(Action::TakeThreeGems(Gem::Diamond, Gem::Sapphire, Gem::Ruby));
-		assert_eq!(result, Err(InvalidAction::NotEnoughGems));
+		assert_eq!(result, Err(HandleActionError::NotEnoughGems));
 		let player = &game.players[player_index];
 
 		assert_eq!(game.current_player_index, player_index);

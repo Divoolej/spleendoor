@@ -1,6 +1,7 @@
 use crate::card::Tier;
 use crate::gem::Gem;
 
+#[derive(Debug, Clone, Copy)]
 pub enum Action {
 	TakeTwoGems(Gem),
 	TakeThreeGems(Gem, Gem, Gem),

@@ -12,6 +12,9 @@ pub mod token_pool;
 mod utils;
 
 pub mod prelude {
+	pub use crate::action::Action;
+	pub use crate::card::Tier;
 	pub use crate::game::Game;
 	pub use crate::game_config::{GameConfig, NumberOfPlayers};
+	pub use crate::gem::Gem;
 }

@@ -10,7 +10,7 @@ pub enum Tier {
 
 pub type Points = u8;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Card {
 	tier: Tier,
 	gem: Gem,

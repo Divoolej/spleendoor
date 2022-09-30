@@ -116,10 +116,8 @@ impl Cards {
 	fn deal_tier(rng: &mut impl Rng, tier: Tier, cards: &[CardData]) -> Vec<Card> {
 		use rand::prelude::SliceRandom;
 
-		let mut deck: Vec<Card> = cards
-			.iter()
-			.map(|&(gem, points, cost)| Card::new(tier, gem, points, cost.into()))
-			.collect();
+		let mut deck: Vec<Card> =
+			cards.iter().map(|&(gem, points, cost)| Card::new(tier, gem, points, cost.into())).collect();
 
 		deck.shuffle(rng);
 
@@ -166,6 +164,50 @@ impl Cards {
 	}
 	pub fn tier_3(&self) -> &Vec<Card> {
 		&self.tier_3
+	}
+}
+
+#[cfg(debug_assertions)]
+impl Cards {
+	pub fn pretty_print(&self) {
+		print!("T1: ");
+		for c in &self.tier_1 {
+			match c.gem() {
+				Gem::Diamond => print!("D"),
+				Gem::Sapphire => print!("S"),
+				Gem::Emerald => print!("E"),
+				Gem::Ruby => print!("R"),
+				Gem::Onyx => print!("O"),
+			}
+			print!("[{}]", c.points());
+			c.cost().pretty_print();
+			print!(" - ");
+		}
+		print!("\nT2: ");
+		for c in &self.tier_2 {
+			match c.gem() {
+				Gem::Diamond => print!("D"),
+				Gem::Sapphire => print!("S"),
+				Gem::Emerald => print!("E"),
+				Gem::Ruby => print!("R"),
+				Gem::Onyx => print!("O"),
+			}
+			print!("[{}]", c.points());
+			c.cost().pretty_print();
+			print!(" - ");
+		}
+		print!("\nT3: ");
+		for c in &self.tier_3 {
+			match c.gem() {
+				Gem::Diamond => print!("D"),
+				Gem::Sapphire => print!("S"),
+				Gem::Emerald => print!("E"),
+				Gem::Ruby => print!("R"),
+				Gem::Onyx => print!("O"),
+			}
+			print!("[{}]", c.points());
+			c.cost().pretty_print();
+		}
 	}
 }
 

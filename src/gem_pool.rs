@@ -71,11 +71,11 @@ impl GemPool {
 
 	pub fn remove(&mut self, gem: Gem, count: u8) {
 		match gem {
-			Gem::Diamond => self.diamonds -= count,
-			Gem::Sapphire => self.sapphires -= count,
-			Gem::Emerald => self.emeralds -= count,
-			Gem::Ruby => self.rubies -= count,
-			Gem::Onyx => self.onyxes -= count,
+			Gem::Diamond => self.diamonds = self.diamonds.saturating_sub(count),
+			Gem::Sapphire => self.sapphires = self.sapphires.saturating_sub(count),
+			Gem::Emerald => self.emeralds = self.emeralds.saturating_sub(count),
+			Gem::Ruby => self.rubies = self.rubies.saturating_sub(count),
+			Gem::Onyx => self.onyxes = self.onyxes.saturating_sub(count),
 		}
 	}
 
@@ -93,6 +93,28 @@ impl GemPool {
 	}
 	pub fn onyxes(&self) -> u8 {
 		self.onyxes
+	}
+}
+
+#[cfg(debug_assertions)]
+impl GemPool {
+	pub fn pretty_print(&self) {
+		print!("|");
+		if self.diamonds > 0 {
+			print!("D{}|", self.diamonds);
+		}
+		if self.sapphires > 0 {
+			print!("S{}|", self.sapphires);
+		}
+		if self.emeralds > 0 {
+			print!("E{}|", self.emeralds);
+		}
+		if self.rubies > 0 {
+			print!("R{}|", self.rubies);
+		}
+		if self.onyxes > 0 {
+			print!("O{}|", self.onyxes);
+		}
 	}
 }
 

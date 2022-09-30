@@ -7,3 +7,7 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.5"
+log = "0.4.17"
+
+[dev-dependencies]
+env_logger = "0.9.1"

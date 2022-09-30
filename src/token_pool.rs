@@ -31,6 +31,9 @@ impl TokenPool {
 	pub fn gold(&self) -> u8 {
 		self.gold_pool
 	}
+	pub fn gold_mut(&mut self) -> &mut u8 {
+		&mut self.gold_pool
+	}
 	pub fn gems(&self) -> &GemPool {
 		&self.gem_pool
 	}

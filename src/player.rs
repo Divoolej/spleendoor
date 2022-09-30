@@ -33,6 +33,9 @@ impl Player {
 	pub fn cards(&self) -> &Vec<Card> {
 		&self.cards
 	}
+	pub fn cards_mut(&mut self) -> &mut Vec<Card> {
+		&mut self.cards
+	}
 	pub fn reserved_cards(&self) -> &Vec<Card> {
 		&self.reserved_cards
 	}
@@ -45,12 +48,29 @@ impl Player {
 		self.tokens.gems_mut().remove(gem, count);
 	}
 
-	// pub fn can_buy(&self, card: &Card) -> bool {
-	// 	let cards_gem_pool = self.cards.iter().fold(GemPool::new(0), |acc, next| GemPool::union(acc, next));
-	// 	let effective_gem_pool = GemPool::union(&cards_gem_pool, self.tokens.gems());
-	// 	let difference = GemPool::difference(card.cost(), &effective_gem_pool);
-	// 	difference.total() <= self.tokens.gold()
-	// }
+	pub fn add_gold(&mut self) {
+		*self.tokens.gold_mut() += 1;
+	}
+
+	pub fn remove_gold(&mut self, count: u8) {
+		*self.tokens.gold_mut() = self.tokens.gold_mut().saturating_sub(count);
+	}
+
+	pub fn cards_gem_pool(&self) -> GemPool {
+		self.cards.iter().fold(GemPool::new(0), |mut acc, next| {
+			acc.add(next.gem(), 1);
+			acc
+		})
+	}
+
+	pub fn effective_gem_pool(&self) -> GemPool {
+		GemPool::union(&self.cards_gem_pool(), self.tokens.gems())
+	}
+
+	pub fn can_buy(&self, card: &Card) -> bool {
+		let difference = GemPool::difference(card.cost(), &self.effective_gem_pool());
+		difference.total() <= self.tokens.gold()
+	}
 }
 
 impl Default for Player {
