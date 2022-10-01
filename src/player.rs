@@ -24,20 +24,40 @@ impl Player {
 		}
 	}
 
+	pub fn aristocrats(&self) -> &Vec<Aristocrat> {
+		&self.aristocrats
+	}
+
+	pub fn aristocrats_mut(&mut self) -> &mut Vec<Aristocrat> {
+		&mut self.aristocrats
+	}
+
 	pub fn token_count(&self) -> u8 {
 		self.tokens.total()
 	}
+
 	pub fn gems(&self) -> &GemPool {
 		self.tokens.gems()
 	}
+
+	pub fn gold(&self) -> u8 {
+		self.tokens.gold()
+	}
+
 	pub fn cards(&self) -> &Vec<Card> {
 		&self.cards
 	}
+
 	pub fn cards_mut(&mut self) -> &mut Vec<Card> {
 		&mut self.cards
 	}
+
 	pub fn reserved_cards(&self) -> &Vec<Card> {
 		&self.reserved_cards
+	}
+
+	pub fn reserved_cards_mut(&mut self) -> &mut Vec<Card> {
+		&mut self.reserved_cards
 	}
 
 	pub fn add_gem(&mut self, gem: Gem, count: u8) {
@@ -46,6 +66,14 @@ impl Player {
 
 	pub fn remove_gem(&mut self, gem: Gem, count: u8) {
 		self.tokens.gems_mut().remove(gem, count);
+	}
+
+	pub fn remove_gems(&mut self, gems: &GemPool) {
+		self.remove_gem(Gem::Diamond, gems.diamonds());
+		self.remove_gem(Gem::Sapphire, gems.sapphires());
+		self.remove_gem(Gem::Emerald, gems.emeralds());
+		self.remove_gem(Gem::Ruby, gems.rubies());
+		self.remove_gem(Gem::Onyx, gems.onyxes());
 	}
 
 	pub fn add_gold(&mut self) {

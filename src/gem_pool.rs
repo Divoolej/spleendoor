@@ -69,6 +69,14 @@ impl GemPool {
 		}
 	}
 
+	pub fn add_gems(&mut self, gems: &GemPool) {
+		self.diamonds += gems.diamonds;
+		self.sapphires += gems.sapphires;
+		self.emeralds += gems.emeralds;
+		self.rubies += gems.rubies;
+		self.onyxes += gems.onyxes;
+	}
+
 	pub fn remove(&mut self, gem: Gem, count: u8) {
 		match gem {
 			Gem::Diamond => self.diamonds = self.diamonds.saturating_sub(count),

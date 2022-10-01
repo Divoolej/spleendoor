@@ -43,6 +43,12 @@ impl std::ops::Deref for Aristocrats {
 	}
 }
 
+impl std::ops::DerefMut for Aristocrats {
+	fn deref_mut(&mut self) -> &mut Self::Target {
+		&mut self.0
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;

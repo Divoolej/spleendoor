@@ -1,3 +1,5 @@
+use std::ops::{AddAssign, SubAssign};
+
 use log::trace;
 use rand::rngs::StdRng;
 
@@ -25,6 +27,14 @@ pub enum HandleActionError {
 	InvalidGameState,
 	NotEnoughGems,
 	InvalidCardIndex,
+	CantAffordCard,
+	ReservedLimitExceeded,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HandleDiscardError {
+	NotEnough,
+	CantDiscard,
 }
 
 #[derive(Debug)]
@@ -58,11 +68,14 @@ impl BoardState {
 			a.pretty_print();
 			print!(" ");
 		}
-		print!("\n");
+		println!();
 		self.cards.pretty_print();
 		for (i, p) in self.players.iter().enumerate() {
 			print!("\nP{} ", i);
 			p.gems().pretty_print();
+			if p.gold() > 0 {
+				print!("G{}|", p.gold());
+			}
 			print!(" ");
 			for c in p.cards() {
 				match c.gem() {
@@ -75,13 +88,12 @@ impl BoardState {
 				print!("[{}] ", c.points());
 			}
 		}
-		print!("\n");
+		println!();
 	}
 }
 
 pub struct Game {
 	turn: u8,
-	rng: StdRng,
 	seed: String,
 	cards: Cards,
 	players: Vec<Player>,
@@ -121,7 +133,6 @@ impl Game {
 			starting_player_index,
 			turn: 1,
 			seed,
-			rng,
 		}
 	}
 
@@ -168,27 +179,100 @@ impl Game {
 			}
 			Action::BuyCard(tier, index) => {
 				let index = index as usize;
-				if index > 3 || self.cards.tier(tier).len() < index {
+				if index > 3 || index >= self.cards.tier(tier).len() {
 					return Err(HandleActionError::InvalidCardIndex);
 				}
 				let card = &self.cards.tier(tier)[index];
 				if player.can_buy(card) {
 					let gold_needed = GemPool::difference(card.cost(), &player.effective_gem_pool());
 					player.remove_gold(gold_needed.total());
+					self.token_pool.gold_mut().add_assign(gold_needed.total());
 					let gem_cost = GemPool::difference(card.cost(), &player.cards_gem_pool());
-					player.remove_gem(Gem::Diamond, gem_cost.diamonds());
-					player.remove_gem(Gem::Sapphire, gem_cost.sapphires());
-					player.remove_gem(Gem::Emerald, gem_cost.emeralds());
-					player.remove_gem(Gem::Ruby, gem_cost.rubies());
-					player.remove_gem(Gem::Onyx, gem_cost.onyxes());
+					player.remove_gems(&gem_cost);
+					self.token_pool.gems_mut().add(Gem::Diamond, gem_cost.diamonds());
+					self.token_pool.gems_mut().add(Gem::Sapphire, gem_cost.sapphires());
+					self.token_pool.gems_mut().add(Gem::Emerald, gem_cost.emeralds());
+					self.token_pool.gems_mut().add(Gem::Ruby, gem_cost.rubies());
+					self.token_pool.gems_mut().add(Gem::Onyx, gem_cost.onyxes());
 					player.cards_mut().push(self.cards.tier_mut(tier).remove(index));
+					let mut new_aristocrats = self.aristocrats.clone();
+					for (i, a) in self.aristocrats.iter().enumerate() {
+						if GemPool::difference(a, &player.cards_gem_pool()).total() == 0 {
+							player.aristocrats_mut().push(new_aristocrats.remove(i));
+						}
+					}
+					self.aristocrats = new_aristocrats;
+				} else {
+					return Err(HandleActionError::CantAffordCard);
 				}
 			}
-			Action::BuyReservedCard(_) => todo!(),
-			Action::ReserveCard(_, _) => todo!(),
-			Action::Pass => todo!(),
+			Action::BuyReservedCard(index) => {
+				let index = index as usize;
+				if index >= player.reserved_cards().len() {
+					return Err(HandleActionError::InvalidCardIndex);
+				}
+				let card = player.reserved_cards()[index];
+				if player.can_buy(&card) {
+					let gold_needed = GemPool::difference(card.cost(), &player.effective_gem_pool());
+					player.remove_gold(gold_needed.total());
+					self.token_pool.gold_mut().add_assign(gold_needed.total());
+					let gem_cost = GemPool::difference(card.cost(), &player.cards_gem_pool());
+					player.remove_gems(&gem_cost);
+					self.token_pool.gems_mut().add(Gem::Diamond, gem_cost.diamonds());
+					self.token_pool.gems_mut().add(Gem::Sapphire, gem_cost.sapphires());
+					self.token_pool.gems_mut().add(Gem::Emerald, gem_cost.emeralds());
+					self.token_pool.gems_mut().add(Gem::Ruby, gem_cost.rubies());
+					self.token_pool.gems_mut().add(Gem::Onyx, gem_cost.onyxes());
+					let card = player.reserved_cards_mut().remove(index);
+					player.cards_mut().push(card);
+					let mut new_aristocrats = self.aristocrats.clone();
+					for (i, a) in self.aristocrats.iter().enumerate() {
+						if GemPool::difference(a, &player.cards_gem_pool()).total() == 0 {
+							player.aristocrats_mut().push(new_aristocrats.remove(i));
+						}
+					}
+					self.aristocrats = new_aristocrats;
+				} else {
+					return Err(HandleActionError::CantAffordCard);
+				}
+			}
+			Action::ReserveCard(tier, index) => {
+				let index = index as usize;
+				if player.reserved_cards().len() >= 3 {
+					return Err(HandleActionError::ReservedLimitExceeded);
+				}
+				player.reserved_cards_mut().push(self.cards.tier_mut(tier).remove(index));
+				if self.token_pool.gold() > 0 {
+					player.add_gold();
+					self.token_pool.gold_mut().sub_assign(1);
+				}
+				if player.token_count() > 10 {
+					self.game_state = GameState::AwaitingDiscard;
+					return Ok(());
+				}
+			}
+			Action::Pass => (),
 		};
 
+		self.turn += 1;
+		self.current_player_index = (self.current_player_index + 1) % self.number_of_players.count();
+		Ok(())
+	}
+
+	pub fn handle_discard(&mut self, discarded: GemPool) -> Result<(), HandleDiscardError> {
+		let player = &mut self.players[self.current_player_index];
+
+		trace!("Player {} |> Discarding {:?}", self.current_player_index, discarded);
+
+		if GemPool::difference(&discarded, player.gems()).total() > 0 {
+			return Err(HandleDiscardError::CantDiscard);
+		}
+		if player.token_count() - discarded.total() > 10 {
+			return Err(HandleDiscardError::NotEnough);
+		}
+		player.remove_gems(&discarded);
+		self.token_pool.gems_mut().add_gems(&discarded);
+		self.game_state = GameState::AwaitingAction;
 		self.turn += 1;
 		self.current_player_index = (self.current_player_index + 1) % self.number_of_players.count();
 		Ok(())
@@ -209,41 +293,57 @@ impl Game {
 	pub fn turn(&self) -> u8 {
 		self.turn
 	}
+
 	pub fn game_state(&self) -> GameState {
 		self.game_state
 	}
+
 	pub fn players(&self) -> &Vec<Player> {
 		&self.players
 	}
+
 	pub fn gold_pool(&self) -> u8 {
 		self.token_pool.gold()
 	}
+
 	pub fn gem_pool(&self) -> &GemPool {
 		self.token_pool.gems()
 	}
+
 	pub fn aristocrat_pool(&self) -> &Aristocrats {
 		&self.aristocrats
 	}
+
 	pub fn current_player_index(&self) -> PlayerIndex {
 		self.current_player_index
 	}
+
 	pub fn tier_1_card_pool(&self) -> &Vec<Card> {
 		self.cards.tier_1()
 	}
+
 	pub fn tier_2_card_pool(&self) -> &Vec<Card> {
 		self.cards.tier_2()
 	}
+
 	pub fn tier_3_card_pool(&self) -> &Vec<Card> {
 		self.cards.tier_3()
 	}
+
 	pub fn starting_player_index(&self) -> PlayerIndex {
 		self.starting_player_index
 	}
+
 	pub fn number_of_players(&self) -> usize {
 		self.number_of_players.count()
 	}
+
 	pub fn current_player(&self) -> &Player {
 		&self.players[self.current_player_index]
+	}
+
+	pub fn seed(&self) -> &str {
+		&self.seed
 	}
 }
 
