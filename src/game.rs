@@ -189,11 +189,7 @@ impl Game {
 					self.token_pool.gold_mut().add_assign(gold_needed.total());
 					let gem_cost = GemPool::difference(card.cost(), &player.cards_gem_pool());
 					player.remove_gems(&gem_cost);
-					self.token_pool.gems_mut().add(Gem::Diamond, gem_cost.diamonds());
-					self.token_pool.gems_mut().add(Gem::Sapphire, gem_cost.sapphires());
-					self.token_pool.gems_mut().add(Gem::Emerald, gem_cost.emeralds());
-					self.token_pool.gems_mut().add(Gem::Ruby, gem_cost.rubies());
-					self.token_pool.gems_mut().add(Gem::Onyx, gem_cost.onyxes());
+					self.token_pool.gems_mut().add_gems(&gem_cost);
 					player.cards_mut().push(self.cards.tier_mut(tier).remove(index));
 					let mut new_aristocrats = self.aristocrats.clone();
 					for (i, a) in self.aristocrats.iter().enumerate() {
@@ -218,11 +214,7 @@ impl Game {
 					self.token_pool.gold_mut().add_assign(gold_needed.total());
 					let gem_cost = GemPool::difference(card.cost(), &player.cards_gem_pool());
 					player.remove_gems(&gem_cost);
-					self.token_pool.gems_mut().add(Gem::Diamond, gem_cost.diamonds());
-					self.token_pool.gems_mut().add(Gem::Sapphire, gem_cost.sapphires());
-					self.token_pool.gems_mut().add(Gem::Emerald, gem_cost.emeralds());
-					self.token_pool.gems_mut().add(Gem::Ruby, gem_cost.rubies());
-					self.token_pool.gems_mut().add(Gem::Onyx, gem_cost.onyxes());
+					self.token_pool.gems_mut().add_gems(&gem_cost);
 					let card = player.reserved_cards_mut().remove(index);
 					player.cards_mut().push(card);
 					let mut new_aristocrats = self.aristocrats.clone();
