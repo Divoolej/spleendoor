@@ -23,10 +23,6 @@ fn main() {
 	game.handle_action(TakeThreeGems(Emerald, Ruby, Onyx)).unwrap();
 	/* Player 1 */
 	game.handle_action(BuyCard(Tier::One, 1)).unwrap();
-	#[cfg(debug_assertions)]
-	game.board_state().pretty_print();
 	/* Player 2 */
 	game.handle_action(ReserveCard(Tier::One, 1)).unwrap();
-	#[cfg(debug_assertions)]
-	game.board_state().pretty_print();
 }

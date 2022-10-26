@@ -28,11 +28,11 @@ fn test_game_setup_for_two_players() {
 	assert!(game.starting_player_index() < 2);
 	assert_eq!(game.players().len(), 2);
 	assert_eq!(game.number_of_players(), 2);
-	assert_eq!(game.gem_pool().diamonds(), 4);
-	assert_eq!(game.gem_pool().sapphires(), 4);
-	assert_eq!(game.gem_pool().emeralds(), 4);
-	assert_eq!(game.gem_pool().rubies(), 4);
-	assert_eq!(game.gem_pool().onyxes(), 4);
+	assert_eq!(game.gem_pool().diamonds, 4);
+	assert_eq!(game.gem_pool().sapphires, 4);
+	assert_eq!(game.gem_pool().emeralds, 4);
+	assert_eq!(game.gem_pool().rubies, 4);
+	assert_eq!(game.gem_pool().onyxes, 4);
 	assert_eq!(game.aristocrat_pool().len(), 3);
 	test_common_setup(&game);
 }
@@ -47,11 +47,11 @@ fn test_game_setup_for_three_players() {
 	assert!(game.starting_player_index() < 3);
 	assert_eq!(game.players().len(), 3);
 	assert_eq!(game.number_of_players(), 3);
-	assert_eq!(game.gem_pool().diamonds(), 5);
-	assert_eq!(game.gem_pool().sapphires(), 5);
-	assert_eq!(game.gem_pool().emeralds(), 5);
-	assert_eq!(game.gem_pool().rubies(), 5);
-	assert_eq!(game.gem_pool().onyxes(), 5);
+	assert_eq!(game.gem_pool().diamonds, 5);
+	assert_eq!(game.gem_pool().sapphires, 5);
+	assert_eq!(game.gem_pool().emeralds, 5);
+	assert_eq!(game.gem_pool().rubies, 5);
+	assert_eq!(game.gem_pool().onyxes, 5);
 	assert_eq!(game.aristocrat_pool().len(), 4);
 	test_common_setup(&game);
 }
@@ -66,11 +66,11 @@ fn test_game_setup_for_four_players() {
 	assert!(game.starting_player_index() < 4);
 	assert_eq!(game.players().len(), 4);
 	assert_eq!(game.number_of_players(), 4);
-	assert_eq!(game.gem_pool().diamonds(), 7);
-	assert_eq!(game.gem_pool().sapphires(), 7);
-	assert_eq!(game.gem_pool().emeralds(), 7);
-	assert_eq!(game.gem_pool().rubies(), 7);
-	assert_eq!(game.gem_pool().onyxes(), 7);
+	assert_eq!(game.gem_pool().diamonds, 7);
+	assert_eq!(game.gem_pool().sapphires, 7);
+	assert_eq!(game.gem_pool().emeralds, 7);
+	assert_eq!(game.gem_pool().rubies, 7);
+	assert_eq!(game.gem_pool().onyxes, 7);
 	assert_eq!(game.aristocrat_pool().len(), 5);
 	test_common_setup(&game);
 }

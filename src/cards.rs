@@ -167,50 +167,6 @@ impl Cards {
 	}
 }
 
-#[cfg(debug_assertions)]
-impl Cards {
-	pub fn pretty_print(&self) {
-		print!("T1: ");
-		for c in &self.tier_1 {
-			match c.gem() {
-				Gem::Diamond => print!("D"),
-				Gem::Sapphire => print!("S"),
-				Gem::Emerald => print!("E"),
-				Gem::Ruby => print!("R"),
-				Gem::Onyx => print!("O"),
-			}
-			print!("[{}]", c.points());
-			c.cost().pretty_print();
-			print!(" - ");
-		}
-		print!("\nT2: ");
-		for c in &self.tier_2 {
-			match c.gem() {
-				Gem::Diamond => print!("D"),
-				Gem::Sapphire => print!("S"),
-				Gem::Emerald => print!("E"),
-				Gem::Ruby => print!("R"),
-				Gem::Onyx => print!("O"),
-			}
-			print!("[{}]", c.points());
-			c.cost().pretty_print();
-			print!(" - ");
-		}
-		print!("\nT3: ");
-		for c in &self.tier_3 {
-			match c.gem() {
-				Gem::Diamond => print!("D"),
-				Gem::Sapphire => print!("S"),
-				Gem::Emerald => print!("E"),
-				Gem::Ruby => print!("R"),
-				Gem::Onyx => print!("O"),
-			}
-			print!("[{}]", c.points());
-			c.cost().pretty_print();
-		}
-	}
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;

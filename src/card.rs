@@ -34,8 +34,8 @@ impl Card {
 	pub fn tier(&self) -> Tier {
 		self.tier
 	}
-	pub fn cost(&self) -> &GemPool {
-		&self.cost
+	pub fn cost(&self) -> GemPool {
+		self.cost
 	}
 	pub fn points(&self) -> Points {
 		self.points
@@ -52,10 +52,10 @@ mod tests {
 		assert_eq!(card.tier, Tier::Two);
 		assert_eq!(card.gem, Gem::Ruby);
 		assert_eq!(card.points, 2);
-		assert_eq!(card.cost.diamonds(), 1);
-		assert_eq!(card.cost.sapphires(), 2);
-		assert_eq!(card.cost.emeralds(), 3);
-		assert_eq!(card.cost.rubies(), 4);
-		assert_eq!(card.cost.onyxes(), 5);
+		assert_eq!(card.cost.diamonds, 1);
+		assert_eq!(card.cost.sapphires, 2);
+		assert_eq!(card.cost.emeralds, 3);
+		assert_eq!(card.cost.rubies, 4);
+		assert_eq!(card.cost.onyxes, 5);
 	}
 }

@@ -1,37 +1,21 @@
+use std::ops::{Add, AddAssign, Sub, SubAssign};
+
 use crate::gem::Gem;
 
 pub type GemPoolTuple = (u8, u8, u8, u8, u8);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GemPool {
-	diamonds: u8,
-	sapphires: u8,
-	emeralds: u8,
-	rubies: u8,
-	onyxes: u8,
+	pub diamonds: u8,
+	pub sapphires: u8,
+	pub emeralds: u8,
+	pub rubies: u8,
+	pub onyxes: u8,
 }
 
 impl GemPool {
-	pub fn union(first: &GemPool, second: &GemPool) -> GemPool {
-		(
-			first.diamonds + second.diamonds,
-			first.sapphires + second.sapphires,
-			first.emeralds + second.emeralds,
-			first.rubies + second.rubies,
-			first.onyxes + second.onyxes,
-		)
-			.into()
-	}
-
-	pub fn difference(first: &GemPool, second: &GemPool) -> GemPool {
-		(
-			first.diamonds.saturating_sub(second.diamonds),
-			first.sapphires.saturating_sub(second.sapphires),
-			first.emeralds.saturating_sub(second.emeralds),
-			first.rubies.saturating_sub(second.rubies),
-			first.onyxes.saturating_sub(second.onyxes),
-		)
-			.into()
+	pub fn empty() -> Self {
+		(0, 0, 0, 0, 0).into()
 	}
 
 	pub fn new(initial_amount: u8) -> Self {
@@ -58,72 +42,6 @@ impl GemPool {
 			Gem::Onyx => self.onyxes,
 		}
 	}
-
-	pub fn add(&mut self, gem: Gem, count: u8) {
-		match gem {
-			Gem::Diamond => self.diamonds += count,
-			Gem::Sapphire => self.sapphires += count,
-			Gem::Emerald => self.emeralds += count,
-			Gem::Ruby => self.rubies += count,
-			Gem::Onyx => self.onyxes += count,
-		}
-	}
-
-	pub fn add_gems(&mut self, gems: &GemPool) {
-		self.diamonds += gems.diamonds;
-		self.sapphires += gems.sapphires;
-		self.emeralds += gems.emeralds;
-		self.rubies += gems.rubies;
-		self.onyxes += gems.onyxes;
-	}
-
-	pub fn remove(&mut self, gem: Gem, count: u8) {
-		match gem {
-			Gem::Diamond => self.diamonds = self.diamonds.saturating_sub(count),
-			Gem::Sapphire => self.sapphires = self.sapphires.saturating_sub(count),
-			Gem::Emerald => self.emeralds = self.emeralds.saturating_sub(count),
-			Gem::Ruby => self.rubies = self.rubies.saturating_sub(count),
-			Gem::Onyx => self.onyxes = self.onyxes.saturating_sub(count),
-		}
-	}
-
-	pub fn diamonds(&self) -> u8 {
-		self.diamonds
-	}
-	pub fn sapphires(&self) -> u8 {
-		self.sapphires
-	}
-	pub fn emeralds(&self) -> u8 {
-		self.emeralds
-	}
-	pub fn rubies(&self) -> u8 {
-		self.rubies
-	}
-	pub fn onyxes(&self) -> u8 {
-		self.onyxes
-	}
-}
-
-#[cfg(debug_assertions)]
-impl GemPool {
-	pub fn pretty_print(&self) {
-		print!("|");
-		if self.diamonds > 0 {
-			print!("D{}|", self.diamonds);
-		}
-		if self.sapphires > 0 {
-			print!("S{}|", self.sapphires);
-		}
-		if self.emeralds > 0 {
-			print!("E{}|", self.emeralds);
-		}
-		if self.rubies > 0 {
-			print!("R{}|", self.rubies);
-		}
-		if self.onyxes > 0 {
-			print!("O{}|", self.onyxes);
-		}
-	}
 }
 
 impl From<GemPoolTuple> for GemPool {
@@ -138,76 +56,95 @@ impl From<GemPoolTuple> for GemPool {
 	}
 }
 
+impl From<Gem> for GemPool {
+	fn from(gem: Gem) -> Self {
+		1 * gem
+	}
+}
+
+impl Add for GemPool {
+	type Output = Self;
+
+	fn add(self, rhs: GemPool) -> GemPool {
+		GemPool {
+			diamonds: self.diamonds + rhs.diamonds,
+			sapphires: self.sapphires + rhs.sapphires,
+			emeralds: self.emeralds + rhs.emeralds,
+			rubies: self.rubies + rhs.rubies,
+			onyxes: self.onyxes + rhs.onyxes,
+		}
+	}
+}
+
+impl Add<Gem> for GemPool {
+	type Output = Self;
+
+	fn add(self, rhs: Gem) -> GemPool {
+		self + GemPool::from(rhs)
+	}
+}
+
+impl AddAssign for GemPool {
+	fn add_assign(&mut self, rhs: GemPool) {
+		self.diamonds += rhs.diamonds;
+		self.sapphires += rhs.sapphires;
+		self.emeralds += rhs.emeralds;
+		self.rubies += rhs.rubies;
+		self.onyxes += rhs.onyxes;
+	}
+}
+
+impl AddAssign<Gem> for GemPool {
+	fn add_assign(&mut self, rhs: Gem) {
+		*self = self.add(rhs);
+	}
+}
+
+impl Sub for GemPool {
+	type Output = Self;
+
+	fn sub(self, rhs: GemPool) -> GemPool {
+		GemPool {
+			diamonds: self.diamonds.saturating_sub(rhs.diamonds),
+			sapphires: self.sapphires.saturating_sub(rhs.sapphires),
+			emeralds: self.emeralds.saturating_sub(rhs.emeralds),
+			rubies: self.rubies.saturating_sub(rhs.rubies),
+			onyxes: self.onyxes.saturating_sub(rhs.onyxes),
+		}
+	}
+}
+
+impl Sub<Gem> for GemPool {
+	type Output = Self;
+
+	fn sub(self, rhs: Gem) -> GemPool {
+		self - GemPool::from(rhs)
+	}
+}
+
+impl SubAssign for GemPool {
+	fn sub_assign(&mut self, rhs: GemPool) {
+		self.diamonds = self.diamonds.saturating_sub(rhs.diamonds);
+		self.sapphires = self.sapphires.saturating_sub(rhs.sapphires);
+		self.emeralds = self.emeralds.saturating_sub(rhs.emeralds);
+		self.rubies = self.rubies.saturating_sub(rhs.rubies);
+		self.onyxes = self.onyxes.saturating_sub(rhs.onyxes);
+	}
+}
+
+impl SubAssign<Gem> for GemPool {
+	fn sub_assign(&mut self, rhs: Gem) {
+		*self = self.sub(rhs);
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
 
 	#[test]
-	fn test_new() {
-		let gem_pool = GemPool::new(2);
-		assert_eq!(gem_pool.diamonds, 2);
-		assert_eq!(gem_pool.sapphires, 2);
-		assert_eq!(gem_pool.emeralds, 2);
-		assert_eq!(gem_pool.rubies, 2);
-		assert_eq!(gem_pool.onyxes, 2);
-	}
-
-	#[test]
-	fn test_total() {
-		let gem_pool = GemPool {
-			diamonds: 1,
-			sapphires: 2,
-			emeralds: 3,
-			rubies: 4,
-			onyxes: 5,
-		};
-		assert_eq!(gem_pool.total(), 15);
-	}
-
-	#[test]
-	fn test_count() {
-		let gem_pool = GemPool {
-			diamonds: 1,
-			sapphires: 2,
-			emeralds: 3,
-			rubies: 4,
-			onyxes: 5,
-		};
-		assert_eq!(gem_pool.count(Gem::Diamond), 1);
-		assert_eq!(gem_pool.count(Gem::Sapphire), 2);
-		assert_eq!(gem_pool.count(Gem::Emerald), 3);
-		assert_eq!(gem_pool.count(Gem::Ruby), 4);
-		assert_eq!(gem_pool.count(Gem::Onyx), 5);
-	}
-
-	#[test]
-	fn test_add() {
-		let mut gem_pool = GemPool::new(0);
-		gem_pool.add(Gem::Diamond, 2);
-		gem_pool.add(Gem::Ruby, 1);
-		assert_eq!(gem_pool.diamonds, 2);
-		assert_eq!(gem_pool.sapphires, 0);
-		assert_eq!(gem_pool.emeralds, 0);
-		assert_eq!(gem_pool.rubies, 1);
-		assert_eq!(gem_pool.onyxes, 0);
-	}
-
-	#[test]
-	fn test_remove() {
-		let mut gem_pool = GemPool::new(2);
-		gem_pool.remove(Gem::Diamond, 2);
-		gem_pool.remove(Gem::Ruby, 1);
-		assert_eq!(gem_pool.diamonds, 0);
-		assert_eq!(gem_pool.sapphires, 2);
-		assert_eq!(gem_pool.emeralds, 2);
-		assert_eq!(gem_pool.rubies, 1);
-		assert_eq!(gem_pool.onyxes, 2);
-	}
-
-	#[test]
 	fn test_from_gem_pool_tuple() {
-		let gem_pool_tuple = (1, 2, 3, 4, 5);
-		let gem_pool: GemPool = gem_pool_tuple.into();
+		let gem_pool = GemPool::from((1, 2, 3, 4, 5));
 		assert_eq!(gem_pool.diamonds, 1);
 		assert_eq!(gem_pool.sapphires, 2);
 		assert_eq!(gem_pool.emeralds, 3);
@@ -216,18 +153,123 @@ mod tests {
 	}
 
 	#[test]
-	fn test_union() {
-		let a: GemPool = (1, 2, 3, 4, 5).into();
-		let b: GemPool = (5, 4, 3, 2, 1).into();
-
-		assert_eq!(GemPool::union(&a, &b), (6, 6, 6, 6, 6).into());
+	fn test_from_gem() {
+		let gem_pool = GemPool::from(Gem::Sapphire);
+		assert_eq!(gem_pool.diamonds, 0);
+		assert_eq!(gem_pool.sapphires, 1);
+		assert_eq!(gem_pool.emeralds, 0);
+		assert_eq!(gem_pool.rubies, 0);
+		assert_eq!(gem_pool.onyxes, 0);
 	}
 
 	#[test]
-	fn test_difference() {
-		let a: GemPool = (1, 2, 3, 4, 5).into();
-		let b: GemPool = (0, 1, 3, 5, 7).into();
+	fn test_default() {
+		assert_eq!(GemPool::default(), (0, 0, 0, 0, 0).into());
+	}
 
-		assert_eq!(GemPool::difference(&a, &b), (1, 1, 0, 0, 0).into());
+	#[test]
+	fn test_empty() {
+		assert_eq!(GemPool::empty(), (0, 0, 0, 0, 0).into());
+	}
+
+	#[test]
+	fn test_new() {
+		assert_eq!(GemPool::new(2), (2, 2, 2, 2, 2).into());
+	}
+
+	#[test]
+	fn test_total() {
+		let gem_pool = GemPool::from((1, 2, 3, 4, 5));
+		assert_eq!(gem_pool.total(), 15);
+	}
+
+	#[test]
+	fn test_count() {
+		let gem_pool = GemPool::from((1, 2, 3, 4, 5));
+		assert_eq!(gem_pool.count(Gem::Diamond), 1);
+		assert_eq!(gem_pool.count(Gem::Sapphire), 2);
+		assert_eq!(gem_pool.count(Gem::Emerald), 3);
+		assert_eq!(gem_pool.count(Gem::Ruby), 4);
+		assert_eq!(gem_pool.count(Gem::Onyx), 5);
+	}
+
+	#[test]
+	fn test_add_gem_pool() {
+		assert_eq!(
+			GemPool::from((1, 2, 3, 4, 5)) + GemPool::from((5, 4, 3, 2, 1)),
+			GemPool::from((6, 6, 6, 6, 6))
+		);
+	}
+
+	#[test]
+	fn test_sub_gem_pool() {
+		assert_eq!(
+			GemPool::from((1, 2, 3, 4, 5)) - GemPool::from((5, 1, 3, 2, 0)),
+			GemPool::from((0, 1, 0, 2, 5))
+		);
+	}
+
+	#[test]
+	fn test_add_gem() {
+		let gem_pool = GemPool::empty();
+		assert_eq!(gem_pool + Gem::Diamond, (1, 0, 0, 0, 0).into());
+		assert_eq!(gem_pool + Gem::Sapphire, (0, 1, 0, 0, 0).into());
+		assert_eq!(gem_pool + Gem::Emerald, (0, 0, 1, 0, 0).into());
+		assert_eq!(gem_pool + Gem::Ruby, (0, 0, 0, 1, 0).into());
+		assert_eq!(gem_pool + Gem::Onyx, (0, 0, 0, 0, 1).into());
+	}
+
+	#[test]
+	fn test_sub_gem() {
+		let gem_pool = GemPool::from((1, 2, 3, 4, 5));
+		assert_eq!(gem_pool - Gem::Diamond, (0, 2, 3, 4, 5).into());
+		assert_eq!(gem_pool - Gem::Sapphire, (1, 1, 3, 4, 5).into());
+		assert_eq!(gem_pool - Gem::Emerald, (1, 2, 2, 4, 5).into());
+		assert_eq!(gem_pool - Gem::Ruby, (1, 2, 3, 3, 5).into());
+		assert_eq!(gem_pool - Gem::Onyx, (1, 2, 3, 4, 4).into());
+	}
+
+	#[test]
+	fn test_add_assign_gem_pool() {
+		let mut gem_pool = GemPool::from((1, 2, 3, 4, 5));
+		gem_pool += GemPool::from((1, 0, 3, 0, 5));
+		assert_eq!(gem_pool, (2, 2, 6, 4, 10).into());
+	}
+
+	#[test]
+	fn test_sub_assign_gem_pool() {
+		let mut gem_pool = GemPool::from((1, 2, 3, 4, 5));
+		gem_pool -= GemPool::from((5, 0, 3, 0, 1));
+		assert_eq!(gem_pool, (0, 2, 0, 4, 4).into());
+	}
+
+	#[test]
+	fn test_add_assign_gem() {
+		let mut gem_pool = GemPool::from((1, 2, 3, 4, 5));
+		gem_pool += Gem::Diamond;
+		assert_eq!(gem_pool, (2, 2, 3, 4, 5).into());
+		gem_pool += Gem::Sapphire;
+		assert_eq!(gem_pool, (2, 3, 3, 4, 5).into());
+		gem_pool += Gem::Emerald;
+		assert_eq!(gem_pool, (2, 3, 4, 4, 5).into());
+		gem_pool += Gem::Ruby;
+		assert_eq!(gem_pool, (2, 3, 4, 5, 5).into());
+		gem_pool += Gem::Onyx;
+		assert_eq!(gem_pool, (2, 3, 4, 5, 6).into());
+	}
+
+	#[test]
+	fn test_sub_assign_gem() {
+		let mut gem_pool = GemPool::from((1, 2, 3, 4, 5));
+		gem_pool -= Gem::Diamond;
+		assert_eq!(gem_pool, (0, 2, 3, 4, 5).into());
+		gem_pool -= Gem::Sapphire;
+		assert_eq!(gem_pool, (0, 1, 3, 4, 5).into());
+		gem_pool -= Gem::Emerald;
+		assert_eq!(gem_pool, (0, 1, 2, 4, 5).into());
+		gem_pool -= Gem::Ruby;
+		assert_eq!(gem_pool, (0, 1, 2, 3, 5).into());
+		gem_pool -= Gem::Onyx;
+		assert_eq!(gem_pool, (0, 1, 2, 3, 4).into());
 	}
 }

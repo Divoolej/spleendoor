@@ -36,12 +36,12 @@ impl Player {
 		self.tokens.total()
 	}
 
-	pub fn gems(&self) -> &GemPool {
-		self.tokens.gems()
+	pub fn gems(&self) -> GemPool {
+		self.tokens.gems
 	}
 
 	pub fn gold(&self) -> u8 {
-		self.tokens.gold()
+		self.tokens.gold
 	}
 
 	pub fn cards(&self) -> &Vec<Card> {
@@ -61,43 +61,40 @@ impl Player {
 	}
 
 	pub fn add_gem(&mut self, gem: Gem, count: u8) {
-		self.tokens.gems_mut().add(gem, count);
+		self.tokens.gems += gem * count;
 	}
 
 	pub fn remove_gem(&mut self, gem: Gem, count: u8) {
-		self.tokens.gems_mut().remove(gem, count);
+		self.tokens.gems -= gem * count;
 	}
 
 	pub fn remove_gems(&mut self, gems: &GemPool) {
-		self.remove_gem(Gem::Diamond, gems.diamonds());
-		self.remove_gem(Gem::Sapphire, gems.sapphires());
-		self.remove_gem(Gem::Emerald, gems.emeralds());
-		self.remove_gem(Gem::Ruby, gems.rubies());
-		self.remove_gem(Gem::Onyx, gems.onyxes());
+		self.remove_gem(Gem::Diamond, gems.diamonds);
+		self.remove_gem(Gem::Sapphire, gems.sapphires);
+		self.remove_gem(Gem::Emerald, gems.emeralds);
+		self.remove_gem(Gem::Ruby, gems.rubies);
+		self.remove_gem(Gem::Onyx, gems.onyxes);
 	}
 
 	pub fn add_gold(&mut self) {
-		*self.tokens.gold_mut() += 1;
+		self.tokens.gold += 1;
 	}
 
 	pub fn remove_gold(&mut self, count: u8) {
-		*self.tokens.gold_mut() = self.tokens.gold_mut().saturating_sub(count);
+		self.tokens.gold = self.tokens.gold.saturating_sub(count);
 	}
 
 	pub fn cards_gem_pool(&self) -> GemPool {
-		self.cards.iter().fold(GemPool::new(0), |mut acc, next| {
-			acc.add(next.gem(), 1);
-			acc
-		})
+		self.cards.iter().fold(GemPool::new(0), |acc, next| acc + next.gem())
 	}
 
 	pub fn effective_gem_pool(&self) -> GemPool {
-		GemPool::union(&self.cards_gem_pool(), self.tokens.gems())
+		self.cards_gem_pool() + self.tokens.gems
 	}
 
 	pub fn can_buy(&self, card: &Card) -> bool {
-		let difference = GemPool::difference(card.cost(), &self.effective_gem_pool());
-		difference.total() <= self.tokens.gold()
+		let difference = card.cost() - self.effective_gem_pool();
+		difference.total() <= self.tokens.gold
 	}
 }
 

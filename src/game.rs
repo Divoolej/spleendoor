@@ -1,5 +1,3 @@
-use std::ops::{AddAssign, SubAssign};
-
 use log::trace;
 use rand::rngs::StdRng;
 
@@ -9,7 +7,6 @@ use crate::aristocrats::Aristocrats;
 use crate::card::Card;
 use crate::cards::Cards;
 use crate::game_config::{GameConfig, NumberOfPlayers};
-use crate::gem::Gem;
 use crate::gem_pool::GemPool;
 use crate::player::{Player, PlayerIndex};
 use crate::token_pool::TokenPool;
@@ -46,50 +43,6 @@ pub struct BoardState {
 	pub game_state: GameState,
 	pub aristocrats: Vec<Aristocrat>,
 	pub current_player_index: PlayerIndex,
-}
-
-#[cfg(debug_assertions)]
-impl BoardState {
-	pub fn pretty_print(&self) {
-		println!(
-			"T{} P{} <{:?}> D{}|S{}|E{}|R{}|O{}|G{}",
-			self.turn,
-			self.current_player_index,
-			self.game_state,
-			self.token_pool.gems().diamonds(),
-			self.token_pool.gems().sapphires(),
-			self.token_pool.gems().emeralds(),
-			self.token_pool.gems().rubies(),
-			self.token_pool.gems().onyxes(),
-			self.token_pool.gold()
-		);
-		print!("A: ");
-		for a in &self.aristocrats {
-			a.pretty_print();
-			print!(" ");
-		}
-		println!();
-		self.cards.pretty_print();
-		for (i, p) in self.players.iter().enumerate() {
-			print!("\nP{} ", i);
-			p.gems().pretty_print();
-			if p.gold() > 0 {
-				print!("G{}|", p.gold());
-			}
-			print!(" ");
-			for c in p.cards() {
-				match c.gem() {
-					Gem::Diamond => print!("D"),
-					Gem::Sapphire => print!("S"),
-					Gem::Emerald => print!("E"),
-					Gem::Ruby => print!("R"),
-					Gem::Onyx => print!("O"),
-				}
-				print!("[{}] ", c.points());
-			}
-		}
-		println!();
-	}
 }
 
 pub struct Game {
@@ -147,8 +100,9 @@ impl Game {
 
 		match action {
 			Action::TakeTwoGems(gem) => {
-				if self.token_pool.gems().count(gem) >= 4 {
-					self.token_pool.gems_mut().remove(gem, 2);
+				if self.token_pool.gems.count(gem) >= 4 {
+					self.token_pool.gems -= gem * 2;
+					// player
 					player.add_gem(gem, 2);
 				} else {
 					return Err(HandleActionError::NotEnoughGems);
@@ -159,13 +113,13 @@ impl Game {
 				}
 			}
 			Action::TakeThreeGems(first_gem, second_gem, third_gem) => {
-				if self.token_pool.gems().count(first_gem) > 0
-					&& self.token_pool.gems().count(second_gem) > 0
-					&& self.token_pool.gems().count(third_gem) > 0
+				if self.token_pool.gems.count(first_gem) > 0
+					&& self.token_pool.gems.count(second_gem) > 0
+					&& self.token_pool.gems.count(third_gem) > 0
 				{
-					self.token_pool.gems_mut().remove(first_gem, 1);
-					self.token_pool.gems_mut().remove(second_gem, 1);
-					self.token_pool.gems_mut().remove(third_gem, 1);
+					self.token_pool.gems -= first_gem;
+					self.token_pool.gems -= second_gem;
+					self.token_pool.gems -= third_gem;
 					player.add_gem(first_gem, 1);
 					player.add_gem(second_gem, 1);
 					player.add_gem(third_gem, 1);
@@ -184,16 +138,16 @@ impl Game {
 				}
 				let card = &self.cards.tier(tier)[index];
 				if player.can_buy(card) {
-					let gold_needed = GemPool::difference(card.cost(), &player.effective_gem_pool());
+					let gold_needed = card.cost() - player.effective_gem_pool();
 					player.remove_gold(gold_needed.total());
-					self.token_pool.gold_mut().add_assign(gold_needed.total());
-					let gem_cost = GemPool::difference(card.cost(), &player.cards_gem_pool());
+					self.token_pool.gold += gold_needed.total();
+					let gem_cost = card.cost() - player.cards_gem_pool();
 					player.remove_gems(&gem_cost);
-					self.token_pool.gems_mut().add_gems(&gem_cost);
+					self.token_pool.gems += gem_cost;
 					player.cards_mut().push(self.cards.tier_mut(tier).remove(index));
 					let mut new_aristocrats = self.aristocrats.clone();
-					for (i, a) in self.aristocrats.iter().enumerate() {
-						if GemPool::difference(a, &player.cards_gem_pool()).total() == 0 {
+					for (i, a) in self.aristocrats.iter().copied().enumerate() {
+						if (a - player.cards_gem_pool()).total() == 0 {
 							player.aristocrats_mut().push(new_aristocrats.remove(i));
 						}
 					}
@@ -209,17 +163,17 @@ impl Game {
 				}
 				let card = player.reserved_cards()[index];
 				if player.can_buy(&card) {
-					let gold_needed = GemPool::difference(card.cost(), &player.effective_gem_pool());
+					let gold_needed = card.cost() - player.effective_gem_pool();
 					player.remove_gold(gold_needed.total());
-					self.token_pool.gold_mut().add_assign(gold_needed.total());
-					let gem_cost = GemPool::difference(card.cost(), &player.cards_gem_pool());
+					self.token_pool.gold += gold_needed.total();
+					let gem_cost = card.cost() - player.cards_gem_pool();
 					player.remove_gems(&gem_cost);
-					self.token_pool.gems_mut().add_gems(&gem_cost);
+					self.token_pool.gems += gem_cost;
 					let card = player.reserved_cards_mut().remove(index);
 					player.cards_mut().push(card);
 					let mut new_aristocrats = self.aristocrats.clone();
-					for (i, a) in self.aristocrats.iter().enumerate() {
-						if GemPool::difference(a, &player.cards_gem_pool()).total() == 0 {
+					for (i, a) in self.aristocrats.iter().copied().enumerate() {
+						if (a - player.cards_gem_pool()).total() == 0 {
 							player.aristocrats_mut().push(new_aristocrats.remove(i));
 						}
 					}
@@ -234,9 +188,9 @@ impl Game {
 					return Err(HandleActionError::ReservedLimitExceeded);
 				}
 				player.reserved_cards_mut().push(self.cards.tier_mut(tier).remove(index));
-				if self.token_pool.gold() > 0 {
+				if self.token_pool.gold > 0 {
 					player.add_gold();
-					self.token_pool.gold_mut().sub_assign(1);
+					self.token_pool.gold -= 1;
 				}
 				if player.token_count() > 10 {
 					self.game_state = GameState::AwaitingDiscard;
@@ -256,14 +210,14 @@ impl Game {
 
 		trace!("Player {} |> Discarding {:?}", self.current_player_index, discarded);
 
-		if GemPool::difference(&discarded, player.gems()).total() > 0 {
+		if (discarded - player.gems()).total() > 0 {
 			return Err(HandleDiscardError::CantDiscard);
 		}
 		if player.token_count() - discarded.total() > 10 {
 			return Err(HandleDiscardError::NotEnough);
 		}
 		player.remove_gems(&discarded);
-		self.token_pool.gems_mut().add_gems(&discarded);
+		self.token_pool.gems += discarded;
 		self.game_state = GameState::AwaitingAction;
 		self.turn += 1;
 		self.current_player_index = (self.current_player_index + 1) % self.number_of_players.count();
@@ -295,11 +249,11 @@ impl Game {
 	}
 
 	pub fn gold_pool(&self) -> u8 {
-		self.token_pool.gold()
+		self.token_pool.gold
 	}
 
-	pub fn gem_pool(&self) -> &GemPool {
-		self.token_pool.gems()
+	pub fn gem_pool(&self) -> GemPool {
+		self.token_pool.gems
 	}
 
 	pub fn aristocrat_pool(&self) -> &Aristocrats {
@@ -374,17 +328,17 @@ mod tests {
 		let mut game = game_fixture();
 		let player_index = game.current_player_index;
 
-		assert_eq!(game.gem_pool().diamonds(), 5);
+		assert_eq!(game.gem_pool().diamonds, 5);
 		assert_eq!(game.game_state, GameState::AwaitingAction);
-		assert_eq!(game.current_player().gems().diamonds(), 0);
+		assert_eq!(game.current_player().gems().diamonds, 0);
 
 		game.handle_action(Action::TakeTwoGems(Gem::Diamond)).unwrap();
 		let player = &game.players[player_index];
 
 		assert_ne!(game.current_player_index, player_index);
-		assert_eq!(game.gem_pool().diamonds(), 3);
+		assert_eq!(game.gem_pool().diamonds, 3);
 		assert_eq!(game.game_state, GameState::AwaitingAction);
-		assert_eq!(player.gems().diamonds(), 2);
+		assert_eq!(player.gems().diamonds, 2);
 	}
 
 	#[test]
@@ -394,9 +348,9 @@ mod tests {
 		let player_index = game.current_player_index;
 		let turn = game.turn;
 
-		assert_eq!(game.gem_pool().diamonds(), 3);
+		assert_eq!(game.gem_pool().diamonds, 3);
 		assert_eq!(game.game_state, GameState::AwaitingAction);
-		assert_eq!(game.current_player().gems().diamonds(), 0);
+		assert_eq!(game.current_player().gems().diamonds, 0);
 
 		let result = game.handle_action(Action::TakeTwoGems(Gem::Diamond));
 		assert_eq!(result, Err(HandleActionError::NotEnoughGems));
@@ -404,9 +358,9 @@ mod tests {
 
 		assert_eq!(game.current_player_index, player_index);
 		assert_eq!(game.turn, turn);
-		assert_eq!(game.gem_pool().diamonds(), 3);
+		assert_eq!(game.gem_pool().diamonds, 3);
 		assert_eq!(game.game_state, GameState::AwaitingAction);
-		assert_eq!(player.gems().diamonds(), 0);
+		assert_eq!(player.gems().diamonds, 0);
 	}
 
 	#[test]
@@ -414,25 +368,25 @@ mod tests {
 		let mut game = game_fixture();
 		let player_index = game.current_player_index;
 
-		assert_eq!(game.gem_pool().diamonds(), 5);
-		assert_eq!(game.gem_pool().sapphires(), 5);
-		assert_eq!(game.gem_pool().rubies(), 5);
+		assert_eq!(game.gem_pool().diamonds, 5);
+		assert_eq!(game.gem_pool().sapphires, 5);
+		assert_eq!(game.gem_pool().rubies, 5);
 		assert_eq!(game.game_state, GameState::AwaitingAction);
-		assert_eq!(game.current_player().gems().diamonds(), 0);
-		assert_eq!(game.current_player().gems().sapphires(), 0);
-		assert_eq!(game.current_player().gems().rubies(), 0);
+		assert_eq!(game.current_player().gems().diamonds, 0);
+		assert_eq!(game.current_player().gems().sapphires, 0);
+		assert_eq!(game.current_player().gems().rubies, 0);
 
 		game.handle_action(Action::TakeThreeGems(Gem::Diamond, Gem::Sapphire, Gem::Ruby)).unwrap();
 		let player = &game.players[player_index];
 
 		assert_ne!(game.current_player_index, player_index);
-		assert_eq!(game.gem_pool().diamonds(), 4);
-		assert_eq!(game.gem_pool().sapphires(), 4);
-		assert_eq!(game.gem_pool().rubies(), 4);
+		assert_eq!(game.gem_pool().diamonds, 4);
+		assert_eq!(game.gem_pool().sapphires, 4);
+		assert_eq!(game.gem_pool().rubies, 4);
 		assert_eq!(game.game_state, GameState::AwaitingAction);
-		assert_eq!(player.gems().diamonds(), 1);
-		assert_eq!(player.gems().sapphires(), 1);
-		assert_eq!(player.gems().rubies(), 1);
+		assert_eq!(player.gems().diamonds, 1);
+		assert_eq!(player.gems().sapphires, 1);
+		assert_eq!(player.gems().rubies, 1);
 	}
 
 	#[test]
@@ -442,13 +396,13 @@ mod tests {
 		let player_index = game.current_player_index;
 		let turn = game.turn;
 
-		assert_eq!(game.gem_pool().diamonds(), 0);
-		assert_eq!(game.gem_pool().sapphires(), 1);
-		assert_eq!(game.gem_pool().rubies(), 3);
+		assert_eq!(game.gem_pool().diamonds, 0);
+		assert_eq!(game.gem_pool().sapphires, 1);
+		assert_eq!(game.gem_pool().rubies, 3);
 		assert_eq!(game.game_state, GameState::AwaitingAction);
-		assert_eq!(game.current_player().gems().diamonds(), 0);
-		assert_eq!(game.current_player().gems().sapphires(), 0);
-		assert_eq!(game.current_player().gems().rubies(), 0);
+		assert_eq!(game.current_player().gems().diamonds, 0);
+		assert_eq!(game.current_player().gems().sapphires, 0);
+		assert_eq!(game.current_player().gems().rubies, 0);
 
 		let result = game.handle_action(Action::TakeThreeGems(Gem::Diamond, Gem::Sapphire, Gem::Ruby));
 		assert_eq!(result, Err(HandleActionError::NotEnoughGems));
@@ -456,12 +410,12 @@ mod tests {
 
 		assert_eq!(game.current_player_index, player_index);
 		assert_eq!(game.turn, turn);
-		assert_eq!(game.gem_pool().diamonds(), 0);
-		assert_eq!(game.gem_pool().sapphires(), 1);
-		assert_eq!(game.gem_pool().rubies(), 3);
+		assert_eq!(game.gem_pool().diamonds, 0);
+		assert_eq!(game.gem_pool().sapphires, 1);
+		assert_eq!(game.gem_pool().rubies, 3);
 		assert_eq!(game.game_state, GameState::AwaitingAction);
-		assert_eq!(player.gems().diamonds(), 0);
-		assert_eq!(player.gems().sapphires(), 0);
-		assert_eq!(player.gems().rubies(), 0);
+		assert_eq!(player.gems().diamonds, 0);
+		assert_eq!(player.gems().sapphires, 0);
+		assert_eq!(player.gems().rubies, 0);
 	}
 }
