@@ -21,7 +21,7 @@ pub enum GameState {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HandleActionError {
-	InvalidGameState,
+	NotAwaitingAction,
 	NotEnoughGems,
 	InvalidCardIndex,
 	CantAffordCard,
@@ -91,7 +91,7 @@ impl Game {
 
 	pub fn handle_action(&mut self, action: Action) -> Result<(), HandleActionError> {
 		if !matches!(self.game_state, GameState::AwaitingAction) {
-			return Err(HandleActionError::InvalidGameState);
+			return Err(HandleActionError::NotAwaitingAction);
 		}
 
 		let player = &mut self.players[self.current_player_index];
@@ -102,7 +102,6 @@ impl Game {
 			Action::TakeTwoGems(gem) => {
 				if self.token_pool.gems.count(gem) >= 4 {
 					self.token_pool.gems -= gem * 2;
-					// player
 					player.add_gem(gem, 2);
 				} else {
 					return Err(HandleActionError::NotEnoughGems);
@@ -142,35 +141,10 @@ impl Game {
 					player.remove_gold(gold_needed.total());
 					self.token_pool.gold += gold_needed.total();
 					let gem_cost = card.cost() - player.cards_gem_pool();
-					player.remove_gems(&gem_cost);
-					self.token_pool.gems += gem_cost;
+					let gems_paid = gem_cost - player.gems();
+					player.remove_gems(&gems_paid);
+					self.token_pool.gems += gems_paid;
 					player.cards_mut().push(self.cards.tier_mut(tier).remove(index));
-					let mut new_aristocrats = self.aristocrats.clone();
-					for (i, a) in self.aristocrats.iter().copied().enumerate() {
-						if (a - player.cards_gem_pool()).total() == 0 {
-							player.aristocrats_mut().push(new_aristocrats.remove(i));
-						}
-					}
-					self.aristocrats = new_aristocrats;
-				} else {
-					return Err(HandleActionError::CantAffordCard);
-				}
-			}
-			Action::BuyReservedCard(index) => {
-				let index = index as usize;
-				if index >= player.reserved_cards().len() {
-					return Err(HandleActionError::InvalidCardIndex);
-				}
-				let card = player.reserved_cards()[index];
-				if player.can_buy(&card) {
-					let gold_needed = card.cost() - player.effective_gem_pool();
-					player.remove_gold(gold_needed.total());
-					self.token_pool.gold += gold_needed.total();
-					let gem_cost = card.cost() - player.cards_gem_pool();
-					player.remove_gems(&gem_cost);
-					self.token_pool.gems += gem_cost;
-					let card = player.reserved_cards_mut().remove(index);
-					player.cards_mut().push(card);
 					let mut new_aristocrats = self.aristocrats.clone();
 					for (i, a) in self.aristocrats.iter().copied().enumerate() {
 						if (a - player.cards_gem_pool()).total() == 0 {
@@ -197,6 +171,33 @@ impl Game {
 					return Ok(());
 				}
 			}
+			Action::BuyReservedCard(index) => {
+				let index = index as usize;
+				if index >= player.reserved_cards().len() {
+					return Err(HandleActionError::InvalidCardIndex);
+				}
+				let card = player.reserved_cards()[index];
+				if player.can_buy(&card) {
+					let gold_needed = card.cost() - player.effective_gem_pool();
+					player.remove_gold(gold_needed.total());
+					self.token_pool.gold += gold_needed.total();
+					let gem_cost = card.cost() - player.cards_gem_pool();
+					let gems_paid = gem_cost - player.gems();
+					player.remove_gems(&gems_paid);
+					self.token_pool.gems += gems_paid;
+					let card = player.reserved_cards_mut().remove(index);
+					player.cards_mut().push(card);
+					let mut new_aristocrats = self.aristocrats.clone();
+					for (i, a) in self.aristocrats.iter().copied().enumerate() {
+						if (a - player.cards_gem_pool()).total() == 0 {
+							player.aristocrats_mut().push(new_aristocrats.remove(i));
+						}
+					}
+					self.aristocrats = new_aristocrats;
+				} else {
+					return Err(HandleActionError::CantAffordCard);
+				}
+			}
 			Action::Pass => (),
 		};
 
@@ -206,6 +207,7 @@ impl Game {
 	}
 
 	pub fn handle_discard(&mut self, discarded: GemPool) -> Result<(), HandleDiscardError> {
+		// TODO: Check game state first
 		let player = &mut self.players[self.current_player_index];
 
 		trace!("Player {} |> Discarding {:?}", self.current_player_index, discarded);
